@@ -1,0 +1,46 @@
+"""Policy fixture YAML for tests."""
+policies:
+  - id: fixture:viewer-read-all
+    effect: PERMIT
+    actions:
+      - "documents:read"
+      - "reports:read"
+    subject_matchers:
+      - roles:
+          - viewer
+    resource_matchers:
+      - type: document
+      - type: report
+    conditions: []
+    priority: 10
+    enabled: true
+
+  - id: fixture:owner-edit
+    effect: PERMIT
+    actions:
+      - "documents:edit"
+      - "documents:delete"
+    subject_matchers:
+      - attributes:
+          owner:
+            ref: "subject.id"
+    resource_matchers:
+      - type: document
+    conditions: []
+    priority: 50
+    enabled: true
+
+  - id: fixture:deny-low-clearance
+    effect: DENY
+    actions:
+      - "documents:read"
+    subject_matchers:
+      - attributes:
+          clearance: low
+    resource_matchers:
+      - type: document
+        attributes:
+          classification: internal
+    conditions: []
+    priority: 100
+    enabled: true

@@ -1,0 +1,79 @@
+site_name: django-pbac
+site_description: Django-first Policy-Based Access Control library
+site_url: https://django-pbac.readthedocs.io/
+repo_url: https://github.com/yourusername/django-pbac
+repo_name: yourusername/django-pbac
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+      - Configuration: getting-started/configuration.md
+  - Concepts:
+      - Architecture: concepts/architecture.md
+      - Policies: concepts/policies.md
+      - Subjects & Resources: concepts/subjects-resources.md
+      - Conditions & Operators: concepts/conditions.md
+      - Conflict Resolution: concepts/conflict-resolution.md
+  - Guides:
+      - Policy Loaders: guides/policy-loaders.md
+      - Context Injectors: guides/context-injectors.md
+      - Django Views: guides/django-views.md
+      - Django REST Framework: guides/drf.md
+      - Template Tags: guides/template-tags.md
+      - Queryset Filtering: guides/queryset-filtering.md
+      - Caching: guides/caching.md
+      - Audit Logging: guides/audit-logging.md
+  - API Reference:
+      - Core Types: api/core-types.md
+      - Evaluator: api/evaluator.md
+      - Engine: api/engine.md
+      - Loaders: api/loaders.md
+      - Injectors: api/injectors.md
+      - Cache: api/cache.md
+      - Audit: api/audit.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md

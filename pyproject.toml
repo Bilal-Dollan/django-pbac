@@ -1,0 +1,95 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "django-pbac"
+version = "0.1.0"
+description = "Production-grade Policy-Based Access Control (PBAC) for Django"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "django-pbac contributors" }]
+keywords = ["django", "pbac", "access-control", "security", "authorization", "policy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "Django>=4.2",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+drf = ["djangorestframework>=3.14", "django-filter>=23.0"]
+dev = [
+    "pytest>=7.4",
+    "pytest-django>=4.7",
+    "pytest-cov>=4.1",
+    "factory-boy>=3.3",
+    "faker>=20.0",
+    "black>=23.0",
+    "ruff>=0.1",
+    "mypy>=1.7",
+    "django-stubs>=4.2",
+    "pre-commit>=3.5",
+    "mkdocs-material>=9.4",
+    "djangorestframework>=3.14",
+    "django-filter>=23.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/django-pbac/django-pbac"
+Documentation = "https://django-pbac.readthedocs.io"
+Repository = "https://github.com/django-pbac/django-pbac"
+"Bug Tracker" = "https://github.com/django-pbac/django-pbac/issues"
+Changelog = "https://github.com/django-pbac/django-pbac/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+django_pbac = ["py.typed"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "W", "I", "N", "UP", "ANN", "S", "B", "A", "C4", "T20", "RUF"]
+ignore = ["ANN101", "ANN102", "ANN401", "S101"]
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["ANN", "S", "T20"]
+"example/*" = ["ANN", "T20"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "tests.settings"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+testpaths = ["tests"]
+addopts = "--cov=src/django_pbac --cov-report=term-missing --cov-report=html"
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
