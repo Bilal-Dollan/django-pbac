@@ -92,7 +92,7 @@ def subject_matcher_matches(
     if matcher.id is not None and subject.id != matcher.id:
         return False
 
-    # type: single-type shorthand
+    # single-type shorthand (SubjectMatcher.type)
     if matcher.type is not None and subject.type != matcher.type:
         return False
 
