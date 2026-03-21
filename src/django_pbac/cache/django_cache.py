@@ -6,7 +6,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import pickle
-from typing import Any
+from typing import Any, cast
 
 from django_pbac.core.models import Policy
 
@@ -42,7 +42,7 @@ class DjangoCacheBackend:
             raw = self._cache.get(key)
             if raw is None:
                 return None
-            return pickle.loads(raw)  # noqa: S301
+            return cast(list[Policy], pickle.loads(raw))  # noqa: S301
         except Exception as exc:
             logger.debug("PolicyCache get error for key %r: %s", key, exc)
             return None

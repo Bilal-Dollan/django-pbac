@@ -36,7 +36,7 @@ def require_policy(
     resource_id_param: str | None = None,
     load_resource: bool = False,
     raise_exception: bool = True,
-) -> Callable:
+) -> Callable[..., Any]:
     """
     Decorator that enforces a PBAC PERMIT decision before calling the view.
 
@@ -51,7 +51,7 @@ def require_policy(
                              If False, redirects to login for unauthenticated users.
     """
 
-    def decorator(view_func: Callable) -> Callable:
+    def decorator(view_func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(view_func)
         def wrapped(request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
             from django_pbac.core.models import Context, PolicyRequest, Resource
@@ -110,7 +110,7 @@ def deny_policy(
     action: str,
     resource_type: str,
     resource_id_kwarg: str | None = None,
-) -> Callable:
+) -> Callable[..., Any]:
     """
     Decorator that raises PermissionDenied if the action is explicitly DENIED.
 
@@ -121,7 +121,7 @@ def deny_policy(
     policies to block access while defaulting to open.
     """
 
-    def decorator(view_func: Callable) -> Callable:
+    def decorator(view_func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(view_func)
         def wrapped(request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
             from django_pbac.core.models import Context, PolicyRequest, Resource

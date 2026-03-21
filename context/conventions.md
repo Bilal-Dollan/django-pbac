@@ -157,6 +157,45 @@ Never import directly from `django.conf.settings` in the package.
 - Tests in `tests/core/` have no Django DB access (pure unit tests)
 - Tests that require DB are marked `@pytest.mark.django_db`
 
+## mypy Strict Compliance
+
+The project runs `mypy` with `strict = true`. Key patterns:
+
+### Generic Django base classes
+Always supply type parameters:
+```python
+class PolicyQuerySet(models.QuerySet[Any]): ...
+class PolicyManager(models.Manager[Any]): ...
+class PolicyAdmin(admin.ModelAdmin[PolicyModel]): ...
+class ConditionInline(admin.TabularInline[ConditionModel, PolicyModel]): ...
+ClassVar[list[Any]]            # not bare ClassVar[list]
+```
+
+### Callable decorator factories
+```python
+def require_policy(...) -> Callable[..., Any]:
+    def decorator(view_func: Callable[..., Any]) -> Callable[..., Any]: ...
+```
+
+### `no-any-return`
+Wrap `Any`-returning expressions with `cast` or `bool()`:
+```python
+return cast(list[Policy], pickle.loads(raw))   # noqa: S301
+return bool(actual == expected)                # in operator functions
+return cast(Policy, loader.get_by_id(id))      # generic protocol call sites
+```
+
+### `has_*_permission` methods in admin
+Use `request: HttpRequest` (not `request: object`) — django-stubs now correctly
+types these, so `# type: ignore[override]` is no longer needed.
+
+### `Model.objects` outside `db/models.py`
+Calls like `SomeModel.objects.create(...)` from non-model files require
+`# type: ignore[attr-defined]` because django-stubs does not resolve `.objects`
+without a full stub-generation pass.
+
+---
+
 ## Import Order
 
 Follows ruff/isort conventions:

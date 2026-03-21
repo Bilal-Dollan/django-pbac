@@ -40,7 +40,7 @@ class OperatorRegistry:
     def __init__(self) -> None:
         self._operators: dict[str, Callable[[Any, Any], bool]] = {}
 
-    def register(self, name: str) -> Callable:
+    def register(self, name: str) -> Callable[[Callable[[Any, Any], bool]], Callable[[Any, Any], bool]]:
         """Decorator to register a new operator by name."""
 
         def decorator(fn: Callable[[Any, Any], bool]) -> Callable[[Any, Any], bool]:
@@ -91,13 +91,13 @@ operator_registry = OperatorRegistry()
 @operator_registry.register("eq")
 def op_eq(actual: Any, expected: Any) -> bool:
     """Equality — case-sensitive."""
-    return actual == expected
+    return bool(actual == expected)
 
 
 @operator_registry.register("neq")
 def op_neq(actual: Any, expected: Any) -> bool:
     """Inequality."""
-    return actual != expected
+    return bool(actual != expected)
 
 
 @operator_registry.register("eq_i")

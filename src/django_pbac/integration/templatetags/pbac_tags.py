@@ -22,6 +22,7 @@ from __future__ import annotations
 import logging
 
 from django import template
+from django.template.base import FilterExpression
 
 logger = logging.getLogger(__name__)
 register = template.Library()
@@ -33,8 +34,8 @@ class PBACCheckNode(template.Node):
     def __init__(
         self,
         action: str,
-        resource_type_expr: template.FilterExpression,
-        resource_id_expr: template.FilterExpression | None,
+        resource_type_expr: FilterExpression,
+        resource_id_expr: FilterExpression | None,
         nodelist_true: template.NodeList,
         nodelist_false: template.NodeList,
         invert: bool = False,

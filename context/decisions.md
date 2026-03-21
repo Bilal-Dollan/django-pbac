@@ -197,7 +197,48 @@ resource_matchers=[
 
 ---
 
-## ADR-010: Context.environment replaces Context.extra
+## ADR-013: mypy strict compliance patterns for Django generics
+
+**Date**: 2026-03  
+**Status**: Accepted
+
+**Context**: `mypy` is configured with `strict = true`. Django-stubs requires explicit
+type parameters on generic Django base classes (`QuerySet[M]`, `Manager[M]`,
+`ModelAdmin[M]`, `TabularInline[M, PM]`). Several `Callable` usages and `return Any`
+patterns also fail under strict mode.
+
+**Decision**: Apply the following patterns uniformly across the codebase:
+
+1. **Generic Django bases**: always supply type parameters:
+   - `models.QuerySet[Any]`, `models.Manager[Any]` (in non-model files to avoid circular imports)
+   - `admin.ModelAdmin[SomeModel]`, `admin.TabularInline[ChildModel, ParentModel]`
+   - `ClassVar[list[Any]]` rather than bare `ClassVar[list]`
+
+2. **`has_*_permission` methods**: use `HttpRequest` (not `object`) as the `request`
+   parameter type — django-stubs correctly types these now; `# type: ignore[override]`
+   is no longer needed.
+
+3. **Callable return types**: `-> Callable` → `-> Callable[..., Any]` on public decorator
+   factories; inner `decorator(view_func: Callable)` → `decorator(view_func: Callable[..., Any])`.
+
+4. **`no-any-return`**: `cast(T, expr)` is used to suppress `Any` return seepage from
+   `pickle.loads`, `jwt.decode`, and untyped protocol call sites. `bool(expr)` is used
+   to narrow `Any == Any` comparisons in operator functions.
+
+5. **Django-stubs `.objects`**: `Model.objects.create(...)` in non-model source files
+   (e.g. `loaders/db.py`, `audit/db.py`) requires `# type: ignore[attr-defined]`
+   because django-stubs does not resolve the `objects` manager on directly-imported
+   model classes without a full django-stubs stub-generation pass.
+
+6. **`mypy_path = "src"`**: must be set in `[tool.mypy]` so that mypy_django_plugin
+   can resolve `django_pbac` as a package without a `ModuleNotFoundError` crash.
+
+**Consequences**:
+- CI (`mypy src/django_pbac --ignore-missing-imports`) passes with 0 errors across 52 files.
+- New admin classes must include model type params on the base class.
+- New decorator factories must use `Callable[..., Any]` in their return annotations.
+- Future model classes that call `.objects.*` from outside `db/models.py` should add
+  `# type: ignore[attr-defined]` or import the manager directly.
 
 **Date**: 2026-03  
 **Status**: Accepted

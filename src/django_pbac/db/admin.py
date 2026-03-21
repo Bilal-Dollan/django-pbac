@@ -8,9 +8,10 @@ Provides rich admin interfaces for:
 """
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from django.contrib import admin
+from django.http import HttpRequest
 from django.utils.html import format_html
 
 from django_pbac.db.models import AuditLogModel, ConditionModel, PolicyModel, PolicyVersionModel
@@ -19,7 +20,7 @@ from django_pbac.db.models import AuditLogModel, ConditionModel, PolicyModel, Po
 # Inline: Conditions
 # ---------------------------------------------------------------------------
 
-class ConditionInline(admin.TabularInline):
+class ConditionInline(admin.TabularInline[ConditionModel, PolicyModel]):
     model = ConditionModel
     extra = 1
     fields = ("attribute", "operator", "value", "negate")
@@ -30,7 +31,7 @@ class ConditionInline(admin.TabularInline):
 # ---------------------------------------------------------------------------
 
 @admin.register(PolicyModel)
-class PolicyAdmin(admin.ModelAdmin):
+class PolicyAdmin(admin.ModelAdmin[PolicyModel]):
     list_display = (
         "name",
         "effect_badge",
@@ -46,7 +47,7 @@ class PolicyAdmin(admin.ModelAdmin):
     search_fields = ("name", "description", "subject_roles", "resource_types")
     readonly_fields = ("id", "created_at", "updated_at")
     ordering = ("-priority", "name")
-    inlines: ClassVar[list] = [ConditionInline]
+    inlines: ClassVar[list[Any]] = [ConditionInline]
 
     fieldsets = (
         (
@@ -102,7 +103,7 @@ class PolicyAdmin(admin.ModelAdmin):
 # ---------------------------------------------------------------------------
 
 @admin.register(AuditLogModel)
-class AuditLogAdmin(admin.ModelAdmin):
+class AuditLogAdmin(admin.ModelAdmin[AuditLogModel]):
     list_display = (
         "timestamp",
         "effect_badge",
@@ -115,16 +116,16 @@ class AuditLogAdmin(admin.ModelAdmin):
     )
     list_filter = ("effect", "resource_type", "action")
     search_fields = ("subject_id", "action", "resource_id", "request_id", "denied_by")
-    readonly_fields: ClassVar[list] = [f.name for f in AuditLogModel._meta.fields]
+    readonly_fields: ClassVar[list[Any]] = [f.name for f in AuditLogModel._meta.fields]
     ordering = ("-timestamp",)
 
-    def has_add_permission(self, request: object) -> bool:  # type: ignore[override]
+    def has_add_permission(self, request: HttpRequest) -> bool:
         return False
 
-    def has_change_permission(self, request: object, obj: object = None) -> bool:  # type: ignore[override]
+    def has_change_permission(self, request: HttpRequest, obj: object = None) -> bool:
         return False
 
-    def has_delete_permission(self, request: object, obj: object = None) -> bool:  # type: ignore[override]
+    def has_delete_permission(self, request: HttpRequest, obj: object = None) -> bool:
         return False
 
     def effect_badge(self, obj: AuditLogModel) -> str:
@@ -141,15 +142,15 @@ class AuditLogAdmin(admin.ModelAdmin):
 # ---------------------------------------------------------------------------
 
 @admin.register(PolicyVersionModel)
-class PolicyVersionAdmin(admin.ModelAdmin):
+class PolicyVersionAdmin(admin.ModelAdmin[PolicyVersionModel]):
     list_display = ("policy_id", "version", "created_by", "created_at", "change_reason")
     list_filter = ("created_by",)
     search_fields = ("policy_id", "created_by", "change_reason")
-    readonly_fields: ClassVar[list] = [f.name for f in PolicyVersionModel._meta.fields]
+    readonly_fields: ClassVar[list[Any]] = [f.name for f in PolicyVersionModel._meta.fields]
     ordering = ("-created_at",)
 
-    def has_add_permission(self, request: object) -> bool:  # type: ignore[override]
+    def has_add_permission(self, request: HttpRequest) -> bool:
         return False
 
-    def has_change_permission(self, request: object, obj: object = None) -> bool:  # type: ignore[override]
+    def has_change_permission(self, request: HttpRequest, obj: object = None) -> bool:
         return False

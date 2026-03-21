@@ -35,8 +35,8 @@ try:
     HAS_DRF = True
 except ImportError:
     HAS_DRF = False
-    BasePermission = object  # type: ignore[misc,assignment]
-    DRFRequest = object  # type: ignore[assignment]
+    BasePermission = object
+    DRFRequest = object
 
 
 def _require_drf() -> None:

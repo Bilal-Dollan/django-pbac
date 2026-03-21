@@ -7,7 +7,7 @@ the last loader wins (respecting the configured loader order).
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from django_pbac.core.models import Policy, Subject
 
@@ -70,7 +70,7 @@ class CompositePolicyLoader:
             try:
                 policy = loader.get_by_id(policy_id)
                 if policy is not None:
-                    return policy
+                    return cast(Policy, policy)
             except Exception as exc:
                 logger.error(
                     "CompositePolicyLoader: get_by_id error from %s: %s",
@@ -89,7 +89,7 @@ class CompositePolicyLoader:
                     return loader.save(policy)
         # Fallback: save to first loader
         if self._loaders:
-            return self._loaders[0].save(policy)
+            return cast(Policy, self._loaders[0].save(policy))
         return policy
 
     def delete(self, policy_id: str) -> None:

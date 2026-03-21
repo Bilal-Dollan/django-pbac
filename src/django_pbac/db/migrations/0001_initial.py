@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import ClassVar
+from typing import Any, ClassVar
 
 import django.db.models.deletion
 from django.db import migrations, models
@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies: ClassVar[list] = []
+    dependencies: ClassVar[list[Any]] = []
 
     operations = [  # noqa: RUF012
         migrations.CreateModel(

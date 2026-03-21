@@ -33,7 +33,7 @@ class DatabaseAuditLogger:
             if not should_log:
                 return
 
-            AuditLogModel.objects.create(
+            AuditLogModel.objects.create(  # type: ignore[attr-defined]
                 effect=decision.effect.value,
                 reason=decision.reason[:500],
                 subject_id=decision.request.subject.id,

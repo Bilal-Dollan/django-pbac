@@ -19,7 +19,7 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 | `types.py` | `Effect`, `ConflictResolution`, `PolicySourceType`, `SubjectType` | ✅ |
 | `exceptions.py` | `PBACError`, `PolicyNotFound`, `EvaluationError`, `ConfigurationError` | ✅ |
 | `models.py` | `Subject`, `Resource`, `Context`, `PolicyRequest`, `Condition`, `SubjectMatcher`, `ResourceMatcher`, `Policy`, `PolicyDecision`, `EvaluationStep`, `ResourceFilter` | ✅ |
-| `operators.py` | `OperatorRegistry`, `operator_registry`, 22 operators, `resolve_attribute`, `resolve_condition_value` — `get(name)` raises `KeyError` for unknown ops | ✅ |
+| `operators.py` | `OperatorRegistry`, `operator_registry`, 22 operators, `resolve_attribute`, `resolve_condition_value` — `get(name)` raises `KeyError` for unknown ops; `register()` returns fully-typed `Callable[[Callable[[Any,Any],bool]],...]`; `op_eq`/`op_neq` use `bool()` to prevent `no-any-return` | ✅ |
 | `matchers.py` | `action_matches`, `subject_matcher_matches`, `resource_matcher_matches` — accept `PolicyRequest` directly; `subject_matcher_matches` signature is multi-line (split for line-length) | ✅ |
 | `evaluator.py` | `PolicyEvaluator.evaluate()`, `get_permitted_resource_filter()` — iterates `subject_matchers`/`resource_matchers` tuples; `_build_q_filters()` uses `supported_operators` (lowercase) local variable | ✅ |
 
@@ -29,10 +29,10 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 |---|---|---|
 | `__init__.py` | re-exports | ✅ |
 | `base.py` | `PolicyLoader` Protocol | ✅ |
-| `db.py` | `DatabasePolicyLoader` | ✅ |
+| `db.py` | `DatabasePolicyLoader` — `save()`/`_to_policy()` use `subject_matchers`/`resource_matchers` API; `ConditionModel.objects` calls carry `# type: ignore[attr-defined]` | ✅ |
 | `code.py` | `BaseCodePolicy` (use `policy_id`/`subject_matchers`/`resource_matchers`), `CodePolicySet` (+ `unregister()`), `CodeDefinedPolicyLoader`, `code_policy_set` | ✅ |
 | `yaml_loader.py` | `YAMLPolicyLoader(directories=[...])` — `name` field optional in YAML, supports list-of-matchers format | ✅ |
-| `composite.py` | `CompositePolicyLoader`, `CompositePolicyLoader.from_settings()` | ✅ |
+| `composite.py` | `CompositePolicyLoader`, `CompositePolicyLoader.from_settings()` — `get_by_id`/`save` return `cast(Policy, ...)` | ✅ |
 
 ## injectors/
 
@@ -41,7 +41,7 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 | `__init__.py` | re-exports | ✅ |
 | `base.py` | `ContextInjector` Protocol | ✅ |
 | `user.py` | `UserAttributeInjector` | ✅ |
-| `jwt.py` | `JWTClaimsInjector` | ✅ |
+| `jwt.py` | `JWTClaimsInjector` — uses `context.environment` / `dataclasses.replace`; `jwt.decode` result cast to `dict[str, Any]` | ✅ |
 | `request_meta.py` | `RequestMetadataInjector` | ✅ |
 | `resource.py` | `ResourceAttributeInjector` | ✅ |
 
@@ -51,7 +51,7 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 |---|---|---|
 | `__init__.py` | re-exports | ✅ |
 | `base.py` | `PolicyCache` Protocol | ✅ |
-| `django_cache.py` | `DjangoCacheBackend` | ✅ |
+| `django_cache.py` | `DjangoCacheBackend` — `pickle.loads` result cast to `list[Policy]` | ✅ |
 | `null.py` | `NullCache` | ✅ |
 
 ## audit/
@@ -60,7 +60,7 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 |---|---|---|
 | `__init__.py` | re-exports | ✅ |
 | `base.py` | `AuditLogger` Protocol | ✅ |
-| `db.py` | `DBAuditLogger` | ✅ |
+| `db.py` | `DBAuditLogger` — `AuditLogModel.objects.create(...)` carries `# type: ignore[attr-defined]` | ✅ |
 | `structured_log.py` | `StructuredLogAuditLogger` | ✅ |
 | `composite.py` | `CompositeAuditLogger`, `.from_settings()` | ✅ |
 
@@ -70,8 +70,8 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 |---|---|---|
 | `__init__.py` | re-exports | ✅ |
 | `models.py` | `PolicyModel`, `ConditionModel`, `PolicyVersionModel`, `AuditLogModel` | ✅ |
-| `managers.py` | `PolicyQuerySet` with chainable filters | ✅ |
-| `admin.py` | `PolicyAdmin`, `AuditLogAdmin`, `PolicyVersionAdmin` | ✅ |
+| `managers.py` | `PolicyQuerySet(models.QuerySet[Any])`, `PolicyManager(models.Manager[Any])` | ✅ |
+| `admin.py` | `PolicyAdmin(admin.ModelAdmin[PolicyModel])`, `AuditLogAdmin(admin.ModelAdmin[AuditLogModel])`, `PolicyVersionAdmin(admin.ModelAdmin[PolicyVersionModel])`, `ConditionInline(admin.TabularInline[ConditionModel, PolicyModel])` | ✅ |
 | `migrations/__init__.py` | — | ✅ |
 | `migrations/0001_initial.py` | Creates all 4 tables | ✅ |
 
@@ -84,7 +84,7 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 | `decorators.py` | `@require_policy`, `@deny_policy` | ✅ |
 | `mixins.py` | `PBACViewMixin`, `PBACQuerySetMixin` | ✅ |
 | `templatetags/__init__.py` | — | ✅ |
-| `templatetags/pbac_tags.py` | `{% can %}`, `{% cannot %}`, `{% endcan %}` | ✅ |
+| `templatetags/pbac_tags.py` | `{% can %}`, `{% cannot %}`, `{% endcan %}` — uses `from django.template.base import FilterExpression` directly (not `template.FilterExpression`) | ✅ |
 | `drf/__init__.py` | — | ✅ |
 | `drf/permissions.py` | `PBACPermission`, `PBACObjectPermission` | ✅ |
 
@@ -101,5 +101,5 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 | File | Key Symbols | Status |
 |---|---|---|
 | `__init__.py` | re-exports | ✅ |
-| `json_serializer.py` | `PolicyJSONSerializer` | ✅ |
+| `json_serializer.py` | `PolicyJSONSerializer` — uses current API (`subject_matchers`, `resource_matchers`, field names `id`/`attributes`/`roles`/`types`) | ✅ |
 | `yaml_serializer.py` | `PolicyYAMLSerializer` | ✅ |

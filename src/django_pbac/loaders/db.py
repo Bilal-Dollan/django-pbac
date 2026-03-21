@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime
+from typing import Any
 
 from django_pbac.core.models import (
     Condition,
@@ -91,17 +92,10 @@ class DatabasePolicyLoader:
             "tags": list(policy.tags),
             # Actions stored as JSON list
             "actions": list(policy.actions),
-            # Subject matcher fields
-            "subject_user_ids": list(policy.subjects.user_ids or []),
-            "subject_types": [t.value for t in (policy.subjects.subject_types or [])],
-            "subject_roles": list(policy.subjects.roles or []),
-            "subject_groups": list(policy.subjects.groups or []),
-            "subject_attribute_conditions": policy.subjects.attribute_conditions or {},
-            # Resource matcher fields
-            "resource_types": list(policy.resources.types),
-            "resource_ids": list(policy.resources.ids or []),
-            "resource_attribute_conditions": policy.resources.attribute_conditions or {},
-            "resource_ancestor_conditions": policy.resources.ancestor_conditions or [],
+            # Subject matcher fields (first matcher only — DB model is single-matcher)
+            **self._subject_matcher_to_db(policy),
+            # Resource matcher fields (first matcher only — DB model is single-matcher)
+            **self._resource_matcher_to_db(policy),
         }
 
         obj, _ = PolicyModel.objects.update_or_create(id=policy.id, defaults=defaults)
@@ -109,7 +103,7 @@ class DatabasePolicyLoader:
         # Sync conditions
         obj.conditions.all().delete()
         for cond in policy.conditions:
-            ConditionModel.objects.create(
+            ConditionModel.objects.create(  # type: ignore[attr-defined]
                 policy=obj,
                 operator=cond.operator,
                 attribute=cond.attribute,
@@ -119,62 +113,84 @@ class DatabasePolicyLoader:
 
         return self._to_policy(obj)
 
+    def _subject_matcher_to_db(self, policy: Policy) -> dict[str, object]:
+        sm = policy.subject_matchers[0] if policy.subject_matchers else SubjectMatcher()
+        return {
+            "subject_user_ids": [sm.id] if sm.id else [],
+            "subject_types": [t.value for t in (sm.subject_types or [])],
+            "subject_roles": list(sm.roles),
+            "subject_groups": list(sm.groups or []),
+            "subject_attribute_conditions": sm.attributes or {},
+        }
+
+    def _resource_matcher_to_db(self, policy: Policy) -> dict[str, object]:
+        rm = policy.resource_matchers[0] if policy.resource_matchers else ResourceMatcher()
+        return {
+            "resource_types": [rm.types] if rm.types else [],
+            "resource_ids": [rm.id] if rm.id else [],
+            "resource_attribute_conditions": rm.attributes or {},
+            "resource_ancestor_conditions": rm.ancestor_conditions or [],
+        }
+
     def delete(self, policy_id: str) -> None:
         from django_pbac.db.models import PolicyModel
 
         PolicyModel.objects.filter(id=policy_id).delete()
 
-    def _to_policy(self, m: object) -> Policy:  # type: ignore[override]
+    def _to_policy(self, m: object) -> Policy:
         """Convert a PolicyModel instance to a Policy dataclass."""
+        # All attribute accesses use object protocol — m is a PolicyModel at runtime
+        def attr(name: str) -> Any:
+            return getattr(m, name)
 
         # Subject matcher
-        subjects = SubjectMatcher(
-            user_ids=frozenset(m.subject_user_ids) if m.subject_user_ids else None,  # type: ignore[attr-defined]
+        subject_matcher = SubjectMatcher(
+            id=attr("subject_user_ids")[0] if attr("subject_user_ids") else None,
             subject_types=(
-                frozenset(SubjectType(t) for t in m.subject_types)  # type: ignore[attr-defined]
-                if m.subject_types  # type: ignore[attr-defined]
+                frozenset(SubjectType(t) for t in attr("subject_types"))
+                if attr("subject_types")
                 else None
             ),
-            roles=frozenset(m.subject_roles) if m.subject_roles else None,  # type: ignore[attr-defined]
-            groups=frozenset(m.subject_groups) if m.subject_groups else None,  # type: ignore[attr-defined]
-            attribute_conditions=m.subject_attribute_conditions or None,  # type: ignore[attr-defined]
+            roles=frozenset(attr("subject_roles")) if attr("subject_roles") else frozenset(),
+            groups=frozenset(attr("subject_groups")) if attr("subject_groups") else None,
+            attributes=attr("subject_attribute_conditions") or None,
         )
 
         # Resource matcher
-        resources = ResourceMatcher(
-            types=frozenset(m.resource_types),  # type: ignore[attr-defined]
-            ids=frozenset(m.resource_ids) if m.resource_ids else None,  # type: ignore[attr-defined]
-            attribute_conditions=m.resource_attribute_conditions or None,  # type: ignore[attr-defined]
-            ancestor_conditions=m.resource_ancestor_conditions or None,  # type: ignore[attr-defined]
+        resource_matcher = ResourceMatcher(
+            types=attr("resource_types")[0] if attr("resource_types") else None,
+            id=attr("resource_ids")[0] if attr("resource_ids") else None,
+            attributes=attr("resource_attribute_conditions") or None,
+            ancestor_conditions=attr("resource_ancestor_conditions") or None,
         )
 
         # Conditions
         conditions = tuple(
             Condition(
-                operator=c.operator,  # type: ignore[attr-defined]
-                attribute=c.attribute,  # type: ignore[attr-defined]
-                value=c.value,  # type: ignore[attr-defined]
-                negate=c.negate,  # type: ignore[attr-defined]
+                operator=c.operator,
+                attribute=c.attribute,
+                value=c.value,
+                negate=c.negate,
             )
-            for c in m.conditions.all()  # type: ignore[attr-defined]
+            for c in attr("conditions").all()
         )
 
         return Policy(
-            id=str(m.id),  # type: ignore[attr-defined]
-            name=m.name,  # type: ignore[attr-defined]
-            description=m.description or "",  # type: ignore[attr-defined]
-            effect=Effect(m.effect),  # type: ignore[attr-defined]
-            subjects=subjects,
-            actions=frozenset(m.actions),  # type: ignore[attr-defined]
-            resources=resources,
+            id=str(attr("id")),
+            name=attr("name"),
+            description=attr("description") or "",
+            effect=Effect(attr("effect")),
+            subject_matchers=(subject_matcher,),
+            actions=frozenset(attr("actions")),
+            resource_matchers=(resource_matcher,),
             conditions=conditions,
-            priority=m.priority,  # type: ignore[attr-defined]
-            conflict_resolution=ConflictResolution(m.conflict_resolution),  # type: ignore[attr-defined]
-            is_active=m.is_active,  # type: ignore[attr-defined]
-            valid_from=m.valid_from,  # type: ignore[attr-defined]
-            valid_until=m.valid_until,  # type: ignore[attr-defined]
-            version=m.version,  # type: ignore[attr-defined]
-            created_by=m.created_by or "system",  # type: ignore[attr-defined]
-            tags=frozenset(m.tags or []),  # type: ignore[attr-defined]
+            priority=attr("priority"),
+            conflict_resolution=ConflictResolution(attr("conflict_resolution")),
+            is_active=attr("is_active"),
+            valid_from=attr("valid_from"),
+            valid_until=attr("valid_until"),
+            version=attr("version"),
+            created_by=attr("created_by") or "system",
+            tags=frozenset(attr("tags") or []),
             source=PolicySourceType.DATABASE,
         )

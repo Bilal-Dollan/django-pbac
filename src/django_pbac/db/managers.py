@@ -8,9 +8,10 @@ from __future__ import annotations
 from datetime import datetime
 
 from django.db import models
+from typing import Any
 
 
-class PolicyQuerySet(models.QuerySet):
+class PolicyQuerySet(models.QuerySet[Any]):
     """Chainable QuerySet for PolicyModel."""
 
     def active(self) -> PolicyQuerySet:
@@ -52,7 +53,7 @@ class PolicyQuerySet(models.QuerySet):
         return self.filter(tags__contains=[tag])
 
 
-class PolicyManager(models.Manager):
+class PolicyManager(models.Manager[Any]):
     """Manager for PolicyModel using PolicyQuerySet."""
 
     def get_queryset(self) -> PolicyQuerySet:

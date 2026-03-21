@@ -104,7 +104,7 @@ class PBACQuerySetMixin:
     pbac_action: str = ""
     pbac_resource_type: str = ""
 
-    def get_pbac_queryset(self, queryset: QuerySet) -> QuerySet:
+    def get_pbac_queryset(self, queryset: QuerySet[Any]) -> QuerySet[Any]:
         """Apply PBAC filter to the given queryset."""
         from django_pbac.engine import pbac_engine
 
@@ -136,6 +136,6 @@ class PBACQuerySetMixin:
 
         return queryset.none()
 
-    def get_queryset(self) -> QuerySet:
+    def get_queryset(self) -> QuerySet[Any]:
         qs = super().get_queryset()  # type: ignore[misc]
         return self.get_pbac_queryset(qs)

@@ -13,7 +13,8 @@ Configuration (in PBAC settings):
 from __future__ import annotations
 
 import logging
-from typing import Any
+from dataclasses import replace
+from typing import Any, cast
 
 from django_pbac.core.models import Context, Subject
 
@@ -74,18 +75,12 @@ class JWTClaimsInjector:
         if not claims:
             return context
 
-        extra = {**context.extra}
+        new_env: dict[str, Any] = {**context.environment, "jwt_claims": claims}
         for k in ("iss", "aud", "exp", "iat", "jti"):
             if k in claims:
-                extra[f"jwt_{k}"] = claims[k]
+                new_env[f"jwt_{k}"] = claims[k]
 
-        return context.with_extra("jwt_claims", claims).__class__(
-            timestamp=context.timestamp,
-            ip_address=context.ip_address,
-            user_agent=context.user_agent,
-            request_id=context.request_id,
-            extra={**context.extra, **extra},
-        )
+        return replace(context, environment=new_env)
 
     def _get_claims(self, request: Any) -> dict[str, Any] | None:
         try:
@@ -106,12 +101,12 @@ class JWTClaimsInjector:
 
             if secret is None:
                 # No-verification decode (dev only)
-                return jwt.decode(
+                return cast(dict[str, Any], jwt.decode(
                     token,
                     options={"verify_signature": False},
                     algorithms=algorithms,
-                )
-            return jwt.decode(token, secret, algorithms=algorithms)
+                ))
+            return cast(dict[str, Any], jwt.decode(token, secret, algorithms=algorithms))
 
         except ImportError:
             logger.debug(

@@ -571,7 +571,7 @@ class PolicyEvaluator:
         This import is deferred and only runs when queryset filtering is used.
         """
         try:
-            from django.db.models import Q  # type: ignore[import]
+            from django.db.models import Q
         except ImportError:
             return None  # Not in Django context — return None to signal permit_all
 
@@ -581,13 +581,14 @@ class PolicyEvaluator:
         any_added = False
 
         for policy in permit_policies:
-            if not policy.resources.attribute_conditions:
+            first_rm = policy.resource_matchers[0] if policy.resource_matchers else None
+            if not (first_rm and first_rm.attributes):
                 continue
 
             policy_q = Q()
             policy_valid = True
 
-            for attr_key, expected in policy.resources.attribute_conditions.items():
+            for attr_key, expected in first_rm.attributes.items():
                 resolved = self._resolve_ref_in_filter(expected, subject)
 
                 if isinstance(resolved, dict):
