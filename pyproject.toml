@@ -83,6 +83,7 @@ ignore = ["ANN401", "S101"]
 python_version = "3.11"
 strict = true
 ignore_missing_imports = true
+mypy_path = "src"
 plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]
