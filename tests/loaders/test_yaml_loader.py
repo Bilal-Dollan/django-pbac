@@ -5,7 +5,6 @@ import pathlib
 import textwrap
 
 import pytest
-
 from django_pbac.loaders.yaml_loader import YAMLPolicyLoader
 
 

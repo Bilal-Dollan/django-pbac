@@ -78,8 +78,8 @@ class PBACPermission(BasePermission):  # type: ignore[misc]
             )
             return False
 
+        from django_pbac.core.models import Context, PolicyRequest, Resource
         from django_pbac.engine import pbac_engine
-        from django_pbac.core.models import Resource, PolicyRequest, Context
 
         subject = self._get_subject(request, pbac_engine)
         context = getattr(request, "pbac_context", None) or Context()
@@ -163,8 +163,8 @@ class PBACObjectPermission(PBACPermission):
         if not action or not resource_type:
             return False
 
+        from django_pbac.core.models import Context, PolicyRequest, Resource
         from django_pbac.engine import pbac_engine
-        from django_pbac.core.models import Resource, PolicyRequest, Context
 
         subject = self._get_subject(request, pbac_engine)
         context = getattr(request, "pbac_context", None) or Context()
@@ -176,13 +176,13 @@ class PBACObjectPermission(PBACPermission):
         # Load resource attributes if configured
         if self.pbac_load_resource_attributes and resource_id:
             try:
-                from django_pbac.injectors.resource import ResourceAttributeInjector
                 from django_pbac.adapters.registry import adapter_registry
+                from django_pbac.injectors.resource import ResourceAttributeInjector
 
                 adapter = adapter_registry.get(resource_type)
                 if adapter:
                     resource = ResourceAttributeInjector().load(resource)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("PBACObjectPermission: failed to load resource attrs: %s", exc)
 
         policy_request = PolicyRequest(

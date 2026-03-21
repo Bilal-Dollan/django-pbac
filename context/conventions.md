@@ -61,6 +61,45 @@ class SubjectType(str, Enum):
 
 YAML policy files must use uppercase values: `effect: PERMIT`, `conflict_resolution: DENY_OVERRIDE`.
 
+## StrEnum (Python 3.11+)
+
+All enums in `core/types.py` use `StrEnum` (via `from enum import StrEnum`), not `class Foo(str, Enum)`.
+This was applied by `ruff --fix` (UP042). Behaviour is identical; `StrEnum` is the idiomatic
+3.11+ form.
+
+## ClassVar on Mutable Class Attributes (RUF012)
+
+Class attributes with mutable defaults must be annotated with `typing.ClassVar` to satisfy
+ruff RUF012, **except** in Django `Meta` inner classes and migration files where the
+convention is to use `# noqa: RUF012` inline (adding `ClassVar` to Django Meta attributes
+would be non-idiomatic):
+
+```python
+# Good — in regular classes
+class BaseCodePolicy:
+    subject_matchers: ClassVar[list[SubjectMatcher]] = []
+    resource_matchers: ClassVar[list[ResourceMatcher]] = []
+
+# Good — Django Meta / migration boilerplate
+class Meta:
+    ordering = ["-priority", "name"]  # noqa: RUF012
+    indexes = [...]                   # noqa: RUF012
+```
+
+## `except Exception: pass` (S110)
+
+The `# noqa: S110` directive must appear on the `except` line, not the `pass` line:
+
+```python
+# Correct
+except Exception:  # noqa: S110
+    pass
+
+# Wrong — ruff reports S110 on except, not pass
+except Exception:
+    pass  # noqa: S110
+```
+
 ## Protocols (Structural Typing)
 
 Plugins use `typing.Protocol` rather than ABCs:

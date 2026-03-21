@@ -218,3 +218,28 @@ field) and `environment["ip"]` (dict key) for attribute-path resolution
   `_resolve_context` is kept.
 - Complex operator policies require manual queryset filtering
 - v2 will add extensible operator-to-ORM-lookup translation
+
+---
+
+## ADR-012: Lint strategy for Django-idiomatic patterns (RUF012, N818)
+
+**Date**: 2026-03  
+**Status**: Accepted
+
+**Context**: Ruff flags several patterns that are standard Django conventions:
+- RUF012 on `Meta.ordering`, `Meta.indexes`, `EFFECT_CHOICES`, `operations` in
+  migrations — Django does not use `ClassVar` in these locations.
+- N818 on `PolicyNotFound` — renaming to `PolicyNotFoundError` would break the
+  public API.
+
+**Decision**:
+- `ClassVar` is used where it is natural and non-disruptive (e.g., `BaseCodePolicy`
+  list defaults, admin `inlines`, `readonly_fields`, migration `dependencies`).
+- `# noqa: RUF012` is used inline on Django `Meta` attributes and the migration
+  `operations` list, because adding `ClassVar` there is against Django convention.
+- `# noqa: N818` is used on `PolicyNotFound` to preserve the public API surface.
+
+**Consequences**:
+- CI (`ruff check src/ tests/`) passes clean.
+- Future authors must add `# noqa: RUF012` to new `Meta` attributes; this is
+  documented in `context/conventions.md`.

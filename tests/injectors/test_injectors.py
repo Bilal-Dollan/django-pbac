@@ -1,11 +1,9 @@
 """Tests for ContextInjectors."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-import pytest
 from django.contrib.auth.models import AnonymousUser
-
 from django_pbac.core.models import Context, Subject
 from django_pbac.core.types import SubjectType
 from django_pbac.injectors.request_meta import RequestMetadataInjector
@@ -84,7 +82,6 @@ class TestRequestMetadataInjector:
     def test_inject_context_ip(self) -> None:
         injector = RequestMetadataInjector()
         req = self._make_request()
-        base = Subject(id="user:1", type=SubjectType.USER)
         ctx = Context()
 
         result_ctx = injector.inject_context(ctx, req)

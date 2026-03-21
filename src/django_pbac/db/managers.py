@@ -13,11 +13,11 @@ from django.db import models
 class PolicyQuerySet(models.QuerySet):
     """Chainable QuerySet for PolicyModel."""
 
-    def active(self) -> "PolicyQuerySet":
+    def active(self) -> PolicyQuerySet:
         """Filter to active policies only."""
         return self.filter(is_active=True)
 
-    def valid_at(self, dt: datetime) -> "PolicyQuerySet":
+    def valid_at(self, dt: datetime) -> PolicyQuerySet:
         """Filter to policies that are valid at the given datetime."""
         return self.filter(
             models.Q(valid_from__isnull=True) | models.Q(valid_from__lte=dt)
@@ -25,7 +25,7 @@ class PolicyQuerySet(models.QuerySet):
             models.Q(valid_until__isnull=True) | models.Q(valid_until__gte=dt)
         )
 
-    def for_action(self, action: str) -> "PolicyQuerySet":
+    def for_action(self, action: str) -> PolicyQuerySet:
         """
         Filter to policies that could match the given action.
 
@@ -39,15 +39,15 @@ class PolicyQuerySet(models.QuerySet):
             | models.Q(actions__contains=["*"])
         )
 
-    def for_resource_type(self, resource_type: str) -> "PolicyQuerySet":
+    def for_resource_type(self, resource_type: str) -> PolicyQuerySet:
         """Filter to policies that include the given resource type."""
         return self.filter(resource_types__contains=[resource_type])
 
-    def for_effect(self, effect: str) -> "PolicyQuerySet":
+    def for_effect(self, effect: str) -> PolicyQuerySet:
         """Filter by PERMIT or DENY effect."""
         return self.filter(effect=effect.upper())
 
-    def with_tag(self, tag: str) -> "PolicyQuerySet":
+    def with_tag(self, tag: str) -> PolicyQuerySet:
         """Filter to policies that have the given tag."""
         return self.filter(tags__contains=[tag])
 

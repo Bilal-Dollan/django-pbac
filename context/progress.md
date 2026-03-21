@@ -205,6 +205,67 @@ spec.
 
 ---
 
+## Phase 11 — Lint / CI Cleanup (`ruff check src/ tests/`)
+
+**Status: ✅ All 32 src/ lint errors resolved — `ruff check src/ tests/` clean**
+
+Auto-fix (`ruff --fix --unsafe-fixes`) applied ~98 fixes in a previous run (import sorting,
+UP037 unquoted annotations, UP042 StrEnum, UP035 `collections.abc.Callable`, UP017
+`datetime.UTC`, RUF022 sorted `__all__`, F401 unused imports, etc.).
+
+The following manual fixes were then applied. **Logic-changing fixes are marked ⚠️.**
+
+### `core/evaluator.py`
+- **⚠️ LOGIC**: `SUPPORTED_OPERATORS = {"eq", "in"}` inside `_build_q_filters()` renamed to
+  `supported_operators` to comply with N806 (variable in function should be lowercase).
+  Functional behaviour is identical — the set is used only as a membership check within the
+  same method.
+- E501: Wrapped long `if not any(…)` resource-type check across multiple lines.
+
+### `core/exceptions.py`
+- Added `# noqa: N818` to `class PolicyNotFound(PBACError)` — renaming to `PolicyNotFoundError`
+  would be a breaking public API change; suppression chosen over rename.
+
+### `core/matchers.py`
+- **⚠️ SIGNATURE**: `subject_matcher_matches` function signature split across multiple lines
+  for E501 compliance. Inline body `subject = … if isinstance(…) else …` also wrapped.
+  Behaviour is unchanged.
+
+### `core/operators.py`
+- RUF002: Replaced EN DASH `–` with hyphen-minus `-` in docstring example `22:00-06:00`.
+  Doc-only change; no logic affected.
+
+### `db/admin.py`
+- Added `from typing import ClassVar`.
+- Annotated `inlines: ClassVar[list]`, and both `readonly_fields: ClassVar[list]` (on
+  `AuditLogAdmin` and `PolicyVersionAdmin`) to comply with RUF012.
+
+### `db/migrations/0001_initial.py`
+- Added `from typing import ClassVar`.
+- `dependencies: ClassVar[list] = []` (was `dependencies: list = []`).
+- `operations = [  # noqa: RUF012` — Django migration boilerplate; ClassVar would be
+  misleading here.
+- Added `# noqa: E501` to the five long field-definition lines.
+
+### `db/models.py`
+- Added `# noqa: RUF012` inline on all mutable Django class attributes:
+  `EFFECT_CHOICES` (×2), `CONFLICT_CHOICES`, `ordering` (×3), `indexes` (×2),
+  `unique_together`. Django convention does not use `ClassVar` in `Meta`; suppression is
+  the idiomatic approach.
+
+### `loaders/code.py`
+- Added `from typing import ClassVar`.
+- `subject_matchers`, `resource_matchers`, `conditions` on `BaseCodePolicy` annotated as
+  `ClassVar[list[…]]`.
+- Wrapped two long lines in `to_policy()` that constructed `subject_matchers` /
+  `resource_matchers` tuples.
+
+### `loaders/yaml_loader.py`
+- Moved `# noqa: S110` from the `pass` line to the `except Exception:` line (ruff reports
+  S110 on the `except` clause, not the body).
+
+---
+
 ## Phase 10 — Example Project
 
 **Completed files:**

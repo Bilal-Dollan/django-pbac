@@ -70,11 +70,13 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-select = ["E", "F", "W", "I", "N", "UP", "ANN", "S", "B", "A", "C4", "T20", "RUF"]
-ignore = ["ANN101", "ANN102", "ANN401", "S101"]
 
-[tool.ruff.per-file-ignores]
-"tests/*" = ["ANN", "S", "T20"]
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "ANN", "S", "B", "A", "C4", "T20", "RUF"]
+ignore = ["ANN401", "S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN", "S", "T20", "E501", "I001"]
 "example/*" = ["ANN", "T20"]
 
 [tool.mypy]

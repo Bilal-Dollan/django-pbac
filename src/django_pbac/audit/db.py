@@ -7,7 +7,6 @@ import logging
 
 from django_pbac.core.models import PolicyDecision
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,8 +22,8 @@ class DatabaseAuditLogger:
     def log(self, decision: PolicyDecision) -> None:
         try:
             from django_pbac.conf import pbac_settings
-            from django_pbac.db.models import AuditLogModel
             from django_pbac.core.types import Effect
+            from django_pbac.db.models import AuditLogModel
 
             should_log = pbac_settings.AUDIT_ALL_DECISIONS or (
                 decision.effect == Effect.DENY
@@ -50,5 +49,5 @@ class DatabaseAuditLogger:
                 denied_by=decision.denied_by or "",
                 permitted_by=decision.permitted_by or "",
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.error("DatabaseAuditLogger failed: %s", exc)

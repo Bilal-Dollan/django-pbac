@@ -21,11 +21,11 @@ from __future__ import annotations
 import ipaddress
 import logging
 import re
+from collections.abc import Callable
 from datetime import datetime, time
-from typing import Any, Callable
+from typing import Any
 
 from django_pbac.core.exceptions import ConfigurationError
-
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class OperatorRegistry:
             raise ConfigurationError(f"Unknown operator: {operator!r}")
         try:
             return bool(self._operators[operator](actual, expected))
-        except Exception:  # noqa: BLE001
+        except Exception:
             return False
 
     def is_registered(self, name: str) -> bool:
@@ -247,7 +247,7 @@ def op_time_between(actual: Any, expected: Any) -> bool:
 
     ``expected`` must be a dict: {"start": "HH:MM", "end": "HH:MM"}
 
-    Handles midnight crossover: if start > end (e.g., 22:00–06:00), the
+    Handles midnight crossover: if start > end (e.g., 22:00-06:00), the
     check wraps around midnight correctly.
     """
     if isinstance(actual, datetime):

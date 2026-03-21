@@ -1,17 +1,16 @@
 """Tests for CompositePolicyLoader."""
 from __future__ import annotations
 
+from typing import ClassVar
+
 import pytest
 
 from django_pbac.core.models import (
-    Context,
-    PolicyRequest,
-    Resource,
     ResourceMatcher,
     Subject,
     SubjectMatcher,
 )
-from django_pbac.core.types import ConflictResolution, Effect, SubjectType
+from django_pbac.core.types import Effect, SubjectType
 from django_pbac.loaders.code import BaseCodePolicy, CodeDefinedPolicyLoader, CodePolicySet
 from django_pbac.loaders.composite import CompositePolicyLoader
 
@@ -19,17 +18,17 @@ from django_pbac.loaders.composite import CompositePolicyLoader
 class PermitReadPolicy(BaseCodePolicy):
     policy_id = "composite:permit-read"
     effect = Effect.PERMIT
-    actions = {"documents:read"}
-    subject_matchers = [SubjectMatcher()]
-    resource_matchers = [ResourceMatcher(types="document")]
+    actions: ClassVar[set[str]] = {"documents:read"}
+    subject_matchers: ClassVar[list[SubjectMatcher]] = [SubjectMatcher()]
+    resource_matchers: ClassVar[list[ResourceMatcher]] = [ResourceMatcher(types="document")]
 
 
 class DenyWritePolicy(BaseCodePolicy):
     policy_id = "composite:deny-write"
     effect = Effect.DENY
-    actions = {"documents:write"}
-    subject_matchers = [SubjectMatcher()]
-    resource_matchers = [ResourceMatcher()]
+    actions: ClassVar[set[str]] = {"documents:write"}
+    subject_matchers: ClassVar[list[SubjectMatcher]] = [SubjectMatcher()]
+    resource_matchers: ClassVar[list[ResourceMatcher]] = [ResourceMatcher()]
 
 
 @pytest.fixture

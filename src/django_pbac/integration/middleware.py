@@ -16,7 +16,8 @@ Usage::
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from django.http import HttpRequest, HttpResponse
 
@@ -25,7 +26,7 @@ from django_pbac.core.types import SubjectType
 
 try:
     from django_pbac.engine import pbac_engine
-except Exception:  # noqa: BLE001
+except Exception:
     pbac_engine = None  # type: ignore[assignment]
 
 
@@ -70,7 +71,7 @@ class PBACMiddleware:
             try:
                 subject = injector.inject_subject(subject, request)
                 context = injector.inject_context(context, request)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning(
                     "ContextInjector %s raised: %s", type(injector).__name__, exc
                 )

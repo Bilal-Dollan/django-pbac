@@ -34,7 +34,7 @@ class PolicyModel(models.Model):
     description = models.TextField(blank=True, default="")
 
     # Effect
-    EFFECT_CHOICES = [("PERMIT", "Permit"), ("DENY", "Deny")]
+    EFFECT_CHOICES = [("PERMIT", "Permit"), ("DENY", "Deny")]  # noqa: RUF012
     effect = models.CharField(max_length=10, choices=EFFECT_CHOICES, db_index=True)
 
     # Actions (JSON array): ["documents:read", "documents:*"]
@@ -55,7 +55,7 @@ class PolicyModel(models.Model):
 
     # Policy metadata
     priority = models.IntegerField(default=0, db_index=True)
-    CONFLICT_CHOICES = [
+    CONFLICT_CHOICES = [  # noqa: RUF012
         ("deny_override", "Deny Override"),
         ("permit_override", "Permit Override"),
         ("first_applicable", "First Applicable"),
@@ -82,8 +82,8 @@ class PolicyModel(models.Model):
         app_label = "django_pbac"
         verbose_name = "Policy"
         verbose_name_plural = "Policies"
-        ordering = ["-priority", "name"]
-        indexes = [
+        ordering = ["-priority", "name"]  # noqa: RUF012
+        indexes = [  # noqa: RUF012
             models.Index(fields=["is_active", "effect"]),
             models.Index(fields=["is_active", "valid_from", "valid_until"]),
         ]
@@ -134,8 +134,8 @@ class PolicyVersionModel(models.Model):
         app_label = "django_pbac"
         verbose_name = "Policy Version"
         verbose_name_plural = "Policy Versions"
-        ordering = ["-version"]
-        unique_together = [("policy_id", "version")]
+        ordering = ["-version"]  # noqa: RUF012
+        unique_together = [("policy_id", "version")]  # noqa: RUF012
 
     def __str__(self) -> str:
         return f"Policy {self.policy_id} v{self.version}"
@@ -153,7 +153,7 @@ class AuditLogModel(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
 
     # Decision
-    EFFECT_CHOICES = [("PERMIT", "Permit"), ("DENY", "Deny")]
+    EFFECT_CHOICES = [("PERMIT", "Permit"), ("DENY", "Deny")]  # noqa: RUF012
     effect = models.CharField(max_length=10, choices=EFFECT_CHOICES, db_index=True)
     reason = models.CharField(max_length=500)
 
@@ -181,8 +181,8 @@ class AuditLogModel(models.Model):
         app_label = "django_pbac"
         verbose_name = "Audit Log"
         verbose_name_plural = "Audit Logs"
-        ordering = ["-timestamp"]
-        indexes = [
+        ordering = ["-timestamp"]  # noqa: RUF012
+        indexes = [  # noqa: RUF012
             models.Index(fields=["subject_id", "action", "timestamp"]),
             models.Index(fields=["effect", "timestamp"]),
             models.Index(fields=["resource_type", "resource_id", "timestamp"]),

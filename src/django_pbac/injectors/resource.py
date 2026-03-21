@@ -15,7 +15,6 @@ from typing import Any
 
 from django_pbac.core.models import Resource
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -67,7 +66,7 @@ class ResourceAttributeInjector:
                 attributes=attributes,
                 ancestors=ancestors,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "ResourceAttributeInjector: failed to load attributes for "
                 "%s/%s: %s",

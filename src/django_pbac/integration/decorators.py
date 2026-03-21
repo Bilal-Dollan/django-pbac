@@ -21,10 +21,10 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from django.http import HttpRequest
-
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +54,8 @@ def require_policy(
     def decorator(view_func: Callable) -> Callable:
         @functools.wraps(view_func)
         def wrapped(request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
+            from django_pbac.core.models import Context, PolicyRequest, Resource
             from django_pbac.engine import pbac_engine
-            from django_pbac.core.models import Resource, PolicyRequest, Context
-            from django_pbac.core.types import SubjectType
 
             # Build subject
             subject = getattr(request, "pbac_subject", None)
@@ -125,9 +124,9 @@ def deny_policy(
     def decorator(view_func: Callable) -> Callable:
         @functools.wraps(view_func)
         def wrapped(request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
-            from django_pbac.engine import pbac_engine
-            from django_pbac.core.models import Resource, PolicyRequest, Context
+            from django_pbac.core.models import Context, PolicyRequest, Resource
             from django_pbac.core.types import Effect
+            from django_pbac.engine import pbac_engine
 
             subject = getattr(request, "pbac_subject", None)
             context = getattr(request, "pbac_context", None) or Context()

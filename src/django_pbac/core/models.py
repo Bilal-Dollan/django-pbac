@@ -7,7 +7,7 @@ produce modified copies. This module is pure Python — no Django imports allowe
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Self
 from uuid import uuid4
 
@@ -17,7 +17,6 @@ from django_pbac.core.types import (
     PolicySourceType,
     SubjectType,
 )
-
 
 # ---------------------------------------------------------------------------
 # Subject
@@ -115,7 +114,7 @@ class Context:
         extra:       Arbitrary additional context (e.g. from JWT claims).
     """
 
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     ip_address: str | None = None
     user_agent: str | None = None
     request_id: str = field(default_factory=lambda: str(uuid4()))

@@ -6,7 +6,6 @@ from typing import Any
 
 from django_pbac.core.models import PolicyDecision
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -25,7 +24,7 @@ class CompositeAuditLogger:
         for audit_logger in self._loggers:
             try:
                 audit_logger.log(decision)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error(
                     "CompositeAuditLogger: error in %s: %s",
                     type(audit_logger).__name__,
@@ -33,9 +32,10 @@ class CompositeAuditLogger:
                 )
 
     @classmethod
-    def from_settings(cls) -> "CompositeAuditLogger":
+    def from_settings(cls) -> CompositeAuditLogger:
         """Build a CompositeAuditLogger from Django settings."""
         from django.utils.module_loading import import_string
+
         from django_pbac.conf import pbac_settings
 
         loggers_config = pbac_settings.AUDIT_LOGGERS
@@ -47,7 +47,7 @@ class CompositeAuditLogger:
             try:
                 klass = import_string(dotted_path)
                 audit_loggers.append(klass())
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error("Failed to load audit logger %r: %s", dotted_path, exc)
 
         return cls(audit_loggers)

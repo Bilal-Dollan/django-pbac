@@ -9,15 +9,18 @@ resource type.
 """
 from __future__ import annotations
 
-import fnmatch
 import logging
 from typing import Any
 
 from django_pbac.core.exceptions import ConfigurationError
-from django_pbac.core.models import Resource, ResourceMatcher, Subject, SubjectMatcher
-from django_pbac.core.models import PolicyRequest
-from django_pbac.core.operators import operator_registry, resolve_condition_value
-
+from django_pbac.core.models import (
+    PolicyRequest,
+    Resource,
+    ResourceMatcher,
+    Subject,
+    SubjectMatcher,
+)
+from django_pbac.core.operators import operator_registry
 
 logger = logging.getLogger(__name__)
 
@@ -70,14 +73,21 @@ def action_matches(pattern: str, action: str) -> bool:
 # SubjectMatcher
 # ---------------------------------------------------------------------------
 
-def subject_matcher_matches(matcher: SubjectMatcher, request_or_subject: "PolicyRequest | Subject") -> bool:
+def subject_matcher_matches(
+    matcher: SubjectMatcher,
+    request_or_subject: PolicyRequest | Subject,
+) -> bool:
     """
     Return True if the subject satisfies ALL criteria in the matcher.
 
     An empty SubjectMatcher (all None/empty) matches ANY subject including anonymous.
     Accepts either a PolicyRequest or a Subject directly.
     """
-    subject = request_or_subject.subject if isinstance(request_or_subject, PolicyRequest) else request_or_subject
+    subject = (
+        request_or_subject.subject
+        if isinstance(request_or_subject, PolicyRequest)
+        else request_or_subject
+    )
     # id: subject.id must match
     if matcher.id is not None and subject.id != matcher.id:
         return False
@@ -117,8 +127,8 @@ def subject_matcher_matches(matcher: SubjectMatcher, request_or_subject: "Policy
 
 def resource_matcher_matches(
     matcher: ResourceMatcher,
-    request_or_resource: "PolicyRequest | Resource",
-    subject: "Subject | None" = None,
+    request_or_resource: PolicyRequest | Resource,
+    subject: Subject | None = None,
 ) -> bool:
     """
     Return True if the resource satisfies ALL criteria in the matcher.

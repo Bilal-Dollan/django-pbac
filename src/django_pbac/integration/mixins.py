@@ -10,8 +10,7 @@ import logging
 from typing import Any
 
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q, QuerySet
-
+from django.db.models import QuerySet
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +44,8 @@ class PBACViewMixin:
         return super().dispatch(request, *args, **kwargs)  # type: ignore[misc]
 
     def pbac_check(self, request: Any, *args: Any, **kwargs: Any) -> None:
+        from django_pbac.core.models import Context, PolicyRequest, Resource
         from django_pbac.engine import pbac_engine
-        from django_pbac.core.models import Resource, PolicyRequest, Context
 
         if not self.pbac_action or not self.pbac_resource_type:
             return

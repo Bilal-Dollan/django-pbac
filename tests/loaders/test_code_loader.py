@@ -1,6 +1,8 @@
 """Tests for CodeDefinedPolicyLoader and CodePolicySet."""
 from __future__ import annotations
 
+from typing import ClassVar
+
 import pytest
 
 from django_pbac.core.models import (
@@ -11,7 +13,7 @@ from django_pbac.core.models import (
     Subject,
     SubjectMatcher,
 )
-from django_pbac.core.types import ConflictResolution, Effect, SubjectType
+from django_pbac.core.types import Effect, SubjectType
 from django_pbac.loaders.code import (
     BaseCodePolicy,
     CodeDefinedPolicyLoader,
@@ -22,17 +24,17 @@ from django_pbac.loaders.code import (
 class ReadDocumentPolicy(BaseCodePolicy):
     policy_id = "code:read-doc"
     effect = Effect.PERMIT
-    actions = {"documents:read"}
-    subject_matchers = [SubjectMatcher(roles=frozenset({"viewer"}))]
-    resource_matchers = [ResourceMatcher(types="document")]
+    actions: ClassVar[set[str]] = {"documents:read"}
+    subject_matchers: ClassVar[list[SubjectMatcher]] = [SubjectMatcher(roles=frozenset({"viewer"}))]
+    resource_matchers: ClassVar[list[ResourceMatcher]] = [ResourceMatcher(types="document")]
 
 
 class DenyGuestPolicy(BaseCodePolicy):
     policy_id = "code:deny-guest"
     effect = Effect.DENY
-    actions = {"*"}
-    subject_matchers = [SubjectMatcher(roles=frozenset({"guest"}))]
-    resource_matchers = [ResourceMatcher()]
+    actions: ClassVar[set[str]] = {"*"}
+    subject_matchers: ClassVar[list[SubjectMatcher]] = [SubjectMatcher(roles=frozenset({"guest"}))]
+    resource_matchers: ClassVar[list[ResourceMatcher]] = [ResourceMatcher()]
 
 
 @pytest.fixture

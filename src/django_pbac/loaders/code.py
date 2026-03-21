@@ -20,7 +20,7 @@ Usage::
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import ClassVar
 
 from django_pbac.core.models import (
     Condition,
@@ -30,7 +30,6 @@ from django_pbac.core.models import (
     SubjectMatcher,
 )
 from django_pbac.core.types import ConflictResolution, Effect, PolicySourceType
-
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +62,9 @@ class BaseCodePolicy:
     name: str = ""
     effect: Effect
     actions: list[str]
-    subject_matchers: list[SubjectMatcher] = []
-    resource_matchers: list[ResourceMatcher] = []
-    conditions: list[Condition] = []
+    subject_matchers: ClassVar[list[SubjectMatcher]] = []
+    resource_matchers: ClassVar[list[ResourceMatcher]] = []
+    conditions: ClassVar[list[Condition]] = []
     description: str = ""
     priority: int = 0
     conflict_resolution: ConflictResolution = ConflictResolution.DENY_OVERRIDE
@@ -76,8 +75,12 @@ class BaseCodePolicy:
     @classmethod
     def to_policy(cls) -> Policy:
         """Convert this class definition to a Policy dataclass."""
-        subject_matchers = tuple(cls.subject_matchers) if cls.subject_matchers else (SubjectMatcher.anyone(),)
-        resource_matchers = tuple(cls.resource_matchers) if cls.resource_matchers else (ResourceMatcher(),)
+        subject_matchers = (
+            tuple(cls.subject_matchers) if cls.subject_matchers else (SubjectMatcher.anyone(),)
+        )
+        resource_matchers = (
+            tuple(cls.resource_matchers) if cls.resource_matchers else (ResourceMatcher(),)
+        )
         return Policy(
             id=cls.policy_id,
             name=cls.name,

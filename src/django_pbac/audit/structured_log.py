@@ -15,7 +15,6 @@ import logging
 from django_pbac.core.models import PolicyDecision
 from django_pbac.core.types import Effect
 
-
 audit_logger = logging.getLogger("django_pbac.audit")
 
 

@@ -20,11 +20,8 @@ Usage::
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from django import template
-from django.template.context import RequestContext
-
 
 logger = logging.getLogger(__name__)
 register = template.Library()
@@ -78,8 +75,9 @@ class PBACCheckNode(template.Node):
         self, context: template.Context, resource_type: str, resource_id: str | None
     ) -> bool:
         try:
+            from django_pbac.core.models import Context as PBACContext
+            from django_pbac.core.models import PolicyRequest, Resource
             from django_pbac.engine import pbac_engine
-            from django_pbac.core.models import Resource, PolicyRequest, Context as PBACContext
 
             request = context.get("request")
 
@@ -114,7 +112,7 @@ class PBACCheckNode(template.Node):
             decision = pbac_engine.evaluate(policy_request)
             return decision.is_permit
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("PBAC template tag evaluation error: %s", exc)
             return False
 

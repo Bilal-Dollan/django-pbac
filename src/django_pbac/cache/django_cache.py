@@ -10,7 +10,6 @@ from typing import Any
 
 from django_pbac.core.models import Policy
 
-
 logger = logging.getLogger(__name__)
 
 CACHE_KEY_PREFIX = "pbac:policies:"
@@ -44,7 +43,7 @@ class DjangoCacheBackend:
             if raw is None:
                 return None
             return pickle.loads(raw)  # noqa: S301
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("PolicyCache get error for key %r: %s", key, exc)
             return None
 
@@ -55,20 +54,20 @@ class DjangoCacheBackend:
         try:
             raw = pickle.dumps(policies)
             self._cache.set(key, raw, effective_ttl)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("PolicyCache set error for key %r: %s", key, exc)
 
     def invalidate(self, key: str) -> None:
         try:
             self._cache.delete(key)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("PolicyCache invalidate error for key %r: %s", key, exc)
 
     def clear(self) -> None:
         try:
             # Django cache clear clears all keys — use pattern delete if supported
             self._cache.clear()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("PolicyCache clear error: %s", exc)
 
     def make_key(self, subject_id: str, action: str, resource_type: str) -> str:

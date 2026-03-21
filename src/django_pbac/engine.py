@@ -29,7 +29,6 @@ from django_pbac.core.models import (
 from django_pbac.core.operators import operator_registry
 from django_pbac.core.types import ConflictResolution, SubjectType
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -99,7 +98,7 @@ class PBACEngine:
 
         try:
             self._audit_logger.log(decision)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.error("Audit logger failed: %s", exc)
 
         return decision
@@ -153,7 +152,7 @@ class PBACEngine:
             try:
                 subject = injector.inject_subject(subject, request)
                 context = injector.inject_context(context, request)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning(
                     "ContextInjector %s error: %s", type(injector).__name__, exc
                 )
@@ -198,8 +197,8 @@ def _build_engine() -> PBACEngine:
     """Build the PBACEngine singleton from Django settings."""
     from django.utils.module_loading import import_string
 
-    from django_pbac.conf import pbac_settings
     from django_pbac.audit.composite import CompositeAuditLogger
+    from django_pbac.conf import pbac_settings
     from django_pbac.loaders.composite import CompositePolicyLoader
 
     # Conflict resolution
@@ -219,7 +218,7 @@ def _build_engine() -> PBACEngine:
     try:
         cache_class = import_string(pbac_settings.CACHE_BACKEND)
         cache = cache_class()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Failed to initialize cache backend: %s. Using NullCache.", exc)
         from django_pbac.cache.null import NullCache
 
@@ -238,7 +237,7 @@ def _build_engine() -> PBACEngine:
         try:
             klass = import_string(dotted_path)
             injectors.append(klass())
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.error("Failed to load context injector %r: %s", dotted_path, exc)
 
     return PBACEngine(

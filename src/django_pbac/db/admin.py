@@ -8,11 +8,12 @@ Provides rich admin interfaces for:
 """
 from __future__ import annotations
 
+from typing import ClassVar
+
 from django.contrib import admin
 from django.utils.html import format_html
 
 from django_pbac.db.models import AuditLogModel, ConditionModel, PolicyModel, PolicyVersionModel
-
 
 # ---------------------------------------------------------------------------
 # Inline: Conditions
@@ -45,7 +46,7 @@ class PolicyAdmin(admin.ModelAdmin):
     search_fields = ("name", "description", "subject_roles", "resource_types")
     readonly_fields = ("id", "created_at", "updated_at")
     ordering = ("-priority", "name")
-    inlines = [ConditionInline]
+    inlines: ClassVar[list] = [ConditionInline]
 
     fieldsets = (
         (
@@ -114,7 +115,7 @@ class AuditLogAdmin(admin.ModelAdmin):
     )
     list_filter = ("effect", "resource_type", "action")
     search_fields = ("subject_id", "action", "resource_id", "request_id", "denied_by")
-    readonly_fields = [f.name for f in AuditLogModel._meta.fields]
+    readonly_fields: ClassVar[list] = [f.name for f in AuditLogModel._meta.fields]
     ordering = ("-timestamp",)
 
     def has_add_permission(self, request: object) -> bool:  # type: ignore[override]
@@ -144,7 +145,7 @@ class PolicyVersionAdmin(admin.ModelAdmin):
     list_display = ("policy_id", "version", "created_by", "created_at", "change_reason")
     list_filter = ("created_by",)
     search_fields = ("policy_id", "created_by", "change_reason")
-    readonly_fields = [f.name for f in PolicyVersionModel._meta.fields]
+    readonly_fields: ClassVar[list] = [f.name for f in PolicyVersionModel._meta.fields]
     ordering = ("-created_at",)
 
     def has_add_permission(self, request: object) -> bool:  # type: ignore[override]

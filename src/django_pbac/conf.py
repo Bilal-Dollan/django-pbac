@@ -10,7 +10,6 @@ from typing import Any
 from django.conf import settings
 from django.test.signals import setting_changed
 
-
 DEFAULTS: dict[str, Any] = {
     # Conflict resolution strategy: deny_override | permit_override | first_applicable
     "CONFLICT_RESOLUTION": "deny_override",
@@ -80,7 +79,7 @@ class PBACSettings:
 pbac_settings = PBACSettings(DEFAULTS)
 
 
-def _reload_pbac_settings(*, setting: str, **kwargs: Any) -> None:  # noqa: ANN003
+def _reload_pbac_settings(*, setting: str, **kwargs: Any) -> None:
     if setting == "PBAC":
         pbac_settings.reload()
 

@@ -5,17 +5,17 @@ This module is pure Python — no Django imports allowed.
 """
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class Effect(str, Enum):
+class Effect(StrEnum):
     """The effect of a policy decision."""
 
     PERMIT = "PERMIT"
     DENY = "DENY"
 
 
-class ConflictResolution(str, Enum):
+class ConflictResolution(StrEnum):
     """
     Strategy for resolving conflicts when multiple policies match a request.
 
@@ -36,7 +36,7 @@ class ConflictResolution(str, Enum):
     FIRST_APPLICABLE = "FIRST_APPLICABLE"
 
 
-class PolicySourceType(str, Enum):
+class PolicySourceType(StrEnum):
     """Where a policy was loaded from."""
 
     DATABASE = "database"
@@ -44,7 +44,7 @@ class PolicySourceType(str, Enum):
     YAML = "yaml"
 
 
-class SubjectType(str, Enum):
+class SubjectType(StrEnum):
     """The type of principal making the request."""
 
     USER = "USER"

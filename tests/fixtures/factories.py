@@ -21,8 +21,8 @@ from django_pbac.core.types import Effect, SubjectType
 
 def make_subject(
     *,
-    id: str = "user:test",
-    type: SubjectType = SubjectType.USER,
+    id: str = "user:test",  # noqa: A002
+    type: SubjectType = SubjectType.USER,  # noqa: A002
     roles: frozenset[str] | None = None,
     attributes: dict | None = None,
 ) -> Subject:
@@ -36,8 +36,8 @@ def make_subject(
 
 def make_resource(
     *,
-    id: str = "resource:test",
-    type: str = "document",
+    id: str = "resource:test",  # noqa: A002
+    type: str = "document",  # noqa: A002
     attributes: dict | None = None,
 ) -> Resource:
     return Resource(id=id, type=type, attributes=attributes or {})
@@ -49,7 +49,7 @@ def make_context(*, environment: dict | None = None) -> Context:
 
 def make_policy(
     *,
-    id: str = "policy:test",
+    id: str = "policy:test",  # noqa: A002
     effect: Effect = Effect.PERMIT,
     actions: frozenset[str] | None = None,
     subject_matchers: tuple[SubjectMatcher, ...] | None = None,

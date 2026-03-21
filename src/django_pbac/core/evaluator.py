@@ -22,11 +22,14 @@ from __future__ import annotations
 
 import logging
 import time as _time
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from django_pbac.core.exceptions import ConfigurationError
-from django_pbac.core.matchers import action_matches, resource_matcher_matches, subject_matcher_matches
+from django_pbac.core.matchers import (
+    action_matches,
+    resource_matcher_matches,
+    subject_matcher_matches,
+)
 from django_pbac.core.models import (
     EvaluationStep,
     Policy,
@@ -35,10 +38,9 @@ from django_pbac.core.models import (
     ResourceFilter,
     Subject,
 )
-from django_pbac.core.operators import OperatorRegistry, operator_registry as default_registry
-from django_pbac.core.operators import resolve_attribute, resolve_condition_value
+from django_pbac.core.operators import OperatorRegistry, resolve_attribute, resolve_condition_value
+from django_pbac.core.operators import operator_registry as default_registry
 from django_pbac.core.types import ConflictResolution, Effect
-
 
 logger = logging.getLogger(__name__)
 
@@ -490,7 +492,10 @@ class PolicyEvaluator:
             if not any(action_matches(pat, action) for pat in policy.actions):
                 continue
             # Check resource type
-            if not any(m.types is None or m.types == resource_type for m in policy.resource_matchers):
+            if not any(
+                m.types is None or m.types == resource_type
+                for m in policy.resource_matchers
+            ):
                 continue
             # Check subject
             if not any(subject_matcher_matches(m, subject) for m in policy.subject_matchers):
@@ -570,7 +575,7 @@ class PolicyEvaluator:
         except ImportError:
             return None  # Not in Django context — return None to signal permit_all
 
-        SUPPORTED_OPERATORS = {"eq", "in"}
+        supported_operators = {"eq", "in"}
 
         combined_q = Q()
         any_added = False
@@ -588,7 +593,7 @@ class PolicyEvaluator:
                 if isinstance(resolved, dict):
                     # Operator dict
                     for op_name, op_value in resolved.items():
-                        if op_name not in SUPPORTED_OPERATORS:
+                        if op_name not in supported_operators:
                             logger.warning(
                                 "django-pbac queryset filter: operator %r is not supported "
                                 "for Q() conversion in v1. Falling back to permit_all. "

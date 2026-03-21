@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import ClassVar
 
 import django.db.models.deletion
 from django.db import migrations, models
@@ -11,16 +12,16 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies: list = []
+    dependencies: ClassVar[list] = []
 
-    operations = [
+    operations = [  # noqa: RUF012
         migrations.CreateModel(
             name="PolicyModel",
             fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),  # noqa: E501
                 ("name", models.CharField(db_index=True, max_length=255, unique=True)),
                 ("description", models.TextField(blank=True, default="")),
-                ("effect", models.CharField(choices=[("PERMIT", "Permit"), ("DENY", "Deny")], db_index=True, max_length=10)),
+                ("effect", models.CharField(choices=[("PERMIT", "Permit"), ("DENY", "Deny")], db_index=True, max_length=10)),  # noqa: E501
                 ("actions", models.JSONField(default=list)),
                 ("subject_user_ids", models.JSONField(blank=True, default=list)),
                 ("subject_types", models.JSONField(blank=True, default=list)),
@@ -59,7 +60,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ConditionModel",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),  # noqa: E501
                 ("policy", models.ForeignKey(
                     on_delete=django.db.models.deletion.CASCADE,
                     related_name="conditions",
@@ -78,7 +79,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PolicyVersionModel",
             fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),  # noqa: E501
                 ("policy_id", models.UUIDField(db_index=True)),
                 ("version", models.PositiveIntegerField()),
                 ("snapshot", models.JSONField()),
@@ -96,7 +97,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="AuditLogModel",
             fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),  # noqa: E501
                 ("timestamp", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("effect", models.CharField(
                     choices=[("PERMIT", "Permit"), ("DENY", "Deny")],

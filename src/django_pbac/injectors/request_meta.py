@@ -11,11 +11,10 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from django_pbac.core.models import Context, Subject
-
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +63,7 @@ class RequestMetadataInjector:
             env["user_agent"] = user_agent
 
         return context.__class__(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             ip_address=ip,
             user_agent=user_agent,
             request_id=request_id,

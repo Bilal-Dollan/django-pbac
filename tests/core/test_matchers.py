@@ -11,12 +11,10 @@ from django_pbac.core.matchers import (
 from django_pbac.core.models import (
     Context,
     PolicyRequest,
-    Resource,
     ResourceMatcher,
     Subject,
     SubjectMatcher,
 )
-from django_pbac.core.operators import operator_registry
 from django_pbac.core.types import SubjectType
 
 

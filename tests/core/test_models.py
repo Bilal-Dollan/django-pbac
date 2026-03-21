@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import pytest
 
-from django_pbac.core.exceptions import EvaluationError
 from django_pbac.core.models import (
     Condition,
     Context,
@@ -15,7 +14,7 @@ from django_pbac.core.models import (
     Subject,
     SubjectMatcher,
 )
-from django_pbac.core.types import ConflictResolution, Effect, SubjectType
+from django_pbac.core.types import Effect, SubjectType
 
 
 class TestSubject:

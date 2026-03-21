@@ -7,7 +7,7 @@ Uses select_related / prefetch_related to avoid N+1 queries.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from django_pbac.core.models import (
     Condition,
@@ -22,7 +22,6 @@ from django_pbac.core.types import (
     PolicySourceType,
     SubjectType,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ class DatabasePolicyLoader:
         """Load policies applicable to this (subject, action, resource_type) triple."""
         from django_pbac.db.models import PolicyModel
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         qs = (
             PolicyModel.objects.active()
             .valid_at(now)
@@ -76,7 +75,7 @@ class DatabasePolicyLoader:
 
     def save(self, policy: Policy) -> Policy:
         """Persist a Policy dataclass to the database."""
-        from django_pbac.db.models import PolicyModel, ConditionModel
+        from django_pbac.db.models import ConditionModel, PolicyModel
 
         defaults = {
             "name": policy.name,
@@ -127,7 +126,6 @@ class DatabasePolicyLoader:
 
     def _to_policy(self, m: object) -> Policy:  # type: ignore[override]
         """Convert a PolicyModel instance to a Policy dataclass."""
-        from django_pbac.db.models import PolicyModel  # for type safety
 
         # Subject matcher
         subjects = SubjectMatcher(

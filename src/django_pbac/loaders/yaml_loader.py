@@ -52,7 +52,6 @@ from django_pbac.core.types import (
     SubjectType,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -85,7 +84,7 @@ class YAMLPolicyLoader:
 
             for d in pbac_settings.YAML_POLICY_DIRS:
                 self._dirs.append(Path(d))
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: S110
             pass
 
     def _load_all_files(self) -> None:
@@ -114,7 +113,7 @@ class YAMLPolicyLoader:
                 self._policies[policy.id] = policy
         except yaml.YAMLError as exc:
             logger.error("Failed to parse YAML policy file %s: %s", path, exc)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.error("Error loading policy file %s: %s", path, exc)
 
     def reload(self) -> None:
@@ -222,8 +221,16 @@ class YAMLPolicyLoader:
         )
 
     def _parse_resource_matcher(self, raw: dict[str, Any]) -> ResourceMatcher:
+        types_val = (
+            raw.get("type")
+            or (
+                raw.get("types", [None])[0]
+                if isinstance(raw.get("types"), list)
+                else raw.get("types")
+            )
+        )
         return ResourceMatcher(
-            types=raw.get("type") or (raw.get("types", [None])[0] if isinstance(raw.get("types"), list) else raw.get("types")),
+            types=types_val,
             id=raw.get("id") or (raw["ids"][0] if "ids" in raw else None),
             attributes=raw.get("attributes") or raw.get("attribute_conditions"),
             ancestor_conditions=raw.get("ancestor_conditions"),

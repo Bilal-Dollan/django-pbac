@@ -8,7 +8,6 @@ from django_pbac.core.models import (
     Condition,
     Context,
     Policy,
-    PolicyDecision,
     PolicyRequest,
     Resource,
     ResourceMatcher,

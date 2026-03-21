@@ -10,8 +10,6 @@ import logging
 from typing import Any
 
 from django_pbac.core.models import Policy, Subject
-from django_pbac.loaders.base import PolicyLoader
-
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,7 @@ class CompositePolicyLoader:
             try:
                 for policy in loader.load_for_request(subject, action, resource_type):
                     merged[policy.id] = policy
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error(
                     "CompositePolicyLoader: error loading from %s: %s",
                     type(loader).__name__,
@@ -59,7 +57,7 @@ class CompositePolicyLoader:
             try:
                 for policy in loader.load_all():
                     merged[policy.id] = policy
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error(
                     "CompositePolicyLoader: error in load_all from %s: %s",
                     type(loader).__name__,
@@ -73,7 +71,7 @@ class CompositePolicyLoader:
                 policy = loader.get_by_id(policy_id)
                 if policy is not None:
                     return policy
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error(
                     "CompositePolicyLoader: get_by_id error from %s: %s",
                     type(loader).__name__,
@@ -98,7 +96,7 @@ class CompositePolicyLoader:
         for loader in self._loaders:
             try:
                 loader.delete(policy_id)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug(
                     "CompositePolicyLoader: delete error from %s: %s",
                     type(loader).__name__,
@@ -106,7 +104,7 @@ class CompositePolicyLoader:
                 )
 
     @classmethod
-    def from_settings(cls) -> "CompositePolicyLoader":
+    def from_settings(cls) -> CompositePolicyLoader:
         """
         Instantiate from Django settings.
 
@@ -121,7 +119,7 @@ class CompositePolicyLoader:
             try:
                 loader_class = import_string(dotted_path)
                 loaders.append(loader_class())
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error(
                     "Failed to instantiate policy loader %r: %s", dotted_path, exc
                 )

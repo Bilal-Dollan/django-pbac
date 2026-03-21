@@ -10,7 +10,7 @@ class PBACError(Exception):
     """Base class for all django-pbac exceptions."""
 
 
-class PolicyNotFound(PBACError):
+class PolicyNotFound(PBACError):  # noqa: N818
     """Raised when a policy with the given ID is not found."""
 
     def __init__(self, policy_id: str) -> None:

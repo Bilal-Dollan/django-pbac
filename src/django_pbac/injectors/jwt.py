@@ -16,8 +16,6 @@ import logging
 from typing import Any
 
 from django_pbac.core.models import Context, Subject
-from django_pbac.core.types import SubjectType
-
 
 logger = logging.getLogger(__name__)
 
@@ -91,8 +89,9 @@ class JWTClaimsInjector:
 
     def _get_claims(self, request: Any) -> dict[str, Any] | None:
         try:
-            from django_pbac.conf import pbac_settings
             import jwt  # PyJWT
+
+            from django_pbac.conf import pbac_settings
 
             header_name = pbac_settings.JWT_HEADER
             prefix = pbac_settings.JWT_PREFIX
@@ -119,6 +118,6 @@ class JWTClaimsInjector:
                 "PyJWT not installed. JWTClaimsInjector requires: pip install PyJWT"
             )
             return None
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("JWT decode failed: %s", exc)
             return None

@@ -18,7 +18,6 @@ from typing import Any
 from django_pbac.core.models import Context, Subject
 from django_pbac.core.types import SubjectType
 
-
 logger = logging.getLogger(__name__)
 
 

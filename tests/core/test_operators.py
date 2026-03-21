@@ -3,13 +3,11 @@ from __future__ import annotations
 
 import pytest
 
-from django_pbac.core.models import Context, Resource, Subject
 from django_pbac.core.operators import (
     OperatorRegistry,
     operator_registry,
     resolve_attribute,
 )
-from django_pbac.core.types import SubjectType
 
 
 @pytest.fixture
