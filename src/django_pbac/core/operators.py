@@ -40,7 +40,9 @@ class OperatorRegistry:
     def __init__(self) -> None:
         self._operators: dict[str, Callable[[Any, Any], bool]] = {}
 
-    def register(self, name: str) -> Callable[[Callable[[Any, Any], bool]], Callable[[Any, Any], bool]]:
+    def register(
+        self, name: str
+    ) -> Callable[[Callable[[Any, Any], bool]], Callable[[Any, Any], bool]]:
         """Decorator to register a new operator by name."""
 
         def decorator(fn: Callable[[Any, Any], bool]) -> Callable[[Any, Any], bool]:

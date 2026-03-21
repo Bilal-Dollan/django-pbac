@@ -6,9 +6,9 @@ Provides chainable, expressive filters for building efficient policy queries.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from django.db import models
-from typing import Any
 
 
 class PolicyQuerySet(models.QuerySet[Any]):
