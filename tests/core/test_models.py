@@ -94,7 +94,7 @@ class TestSubjectMatcher:
 
 class TestResourceMatcher:
     def test_type_only(self) -> None:
-        m = ResourceMatcher(type="document")
+        m = ResourceMatcher(types="document")
         assert m.type == "document"
         assert m.id is None
 
@@ -106,7 +106,7 @@ class TestPolicy:
             effect=Effect.PERMIT,
             actions=frozenset({"documents:read"}),
             subject_matchers=(SubjectMatcher(),),
-            resource_matchers=(ResourceMatcher(type="document"),),
+            resource_matchers=(ResourceMatcher(types="document"),),
             conditions=(),
         )
         assert p.id == "p1"

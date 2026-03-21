@@ -23,9 +23,43 @@ class Subject:
 
 **Key rules:**
 - `frozenset` for collections that must be immutable (roles, actions)
-- `tuple` for ordered collections that must be immutable (matchers, conditions)
+- `tuple` for ordered collections that must be immutable (matchers `tuple[SubjectMatcher, ...]`, conditions)
 - `dict` is allowed for attributes since content immutability is not enforced
 - `__post_init__` for validation — raise `ValueError` on invalid data
+
+## Domain Object Field Names (authoritative)
+
+Use these exact field names; do not use the old names on the left:
+
+| Dataclass | Old name (removed) | Current name |
+|---|---|---|
+| `Policy` | `subjects` | `subject_matchers: tuple[SubjectMatcher, ...]` |
+| `Policy` | `resources` | `resource_matchers: tuple[ResourceMatcher, ...]` |
+| `Context` | `extra` | `environment: dict[str, Any]` |
+| `PolicyDecision` | `evaluation_trace` | `trace` |
+| `SubjectMatcher` | `user_ids` | `id: str \| None` |
+| `SubjectMatcher` | `attribute_conditions` | `attributes: dict \| None` |
+| `ResourceMatcher` | `ids` | `id: str \| None` |
+| `ResourceMatcher` | `attribute_conditions` | `attributes: dict \| None` |
+
+## Enum Values
+
+All enum string values are **UPPERCASE**.
+
+```python
+class ConflictResolution(str, Enum):
+    DENY_OVERRIDE = "DENY_OVERRIDE"
+    PERMIT_OVERRIDE = "PERMIT_OVERRIDE"
+    FIRST_APPLICABLE = "FIRST_APPLICABLE"
+
+class SubjectType(str, Enum):
+    USER = "USER"
+    SERVICE = "SERVICE"
+    API_KEY = "API_KEY"
+    ANONYMOUS = "ANONYMOUS"
+```
+
+YAML policy files must use uppercase values: `effect: PERMIT`, `conflict_resolution: DENY_OVERRIDE`.
 
 ## Protocols (Structural Typing)
 

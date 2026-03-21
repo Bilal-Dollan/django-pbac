@@ -49,6 +49,16 @@ class OperatorRegistry:
 
         return decorator
 
+    def get(self, name: str) -> Any:
+        """
+        Return the callable for the named operator.
+
+        Raises KeyError if the operator is not registered.
+        """
+        if name not in self._operators:
+            raise KeyError(f"Unknown operator: {name!r}")
+        return self._operators[name]
+
     def evaluate(self, operator: str, actual: Any, expected: Any) -> bool:
         """
         Evaluate an operator.
@@ -344,10 +354,14 @@ def _resolve_context(parts: list[str], context: Any) -> Any:
         return context.user_agent
     if segment == "request_id":
         return context.request_id
+    if segment == "environment":
+        if len(parts) < 2:
+            return context.environment
+        return context.environment.get(parts[1])
     if segment == "extra":
         if len(parts) < 2:
-            return context.extra
-        return context.extra.get(parts[1])
+            return getattr(context, "extra", context.environment)
+        return getattr(context, "extra", context.environment).get(parts[1])
     return None
 
 

@@ -59,12 +59,12 @@ class BaseCodePolicy:
         tags (set[str] | frozenset[str]): Searchable tags.
     """
 
-    id: str
-    name: str
+    policy_id: str
+    name: str = ""
     effect: Effect
     actions: list[str]
-    subject: SubjectMatcher = SubjectMatcher.anyone()
-    resources: ResourceMatcher
+    subject_matchers: list[SubjectMatcher] = []
+    resource_matchers: list[ResourceMatcher] = []
     conditions: list[Condition] = []
     description: str = ""
     priority: int = 0
@@ -76,13 +76,15 @@ class BaseCodePolicy:
     @classmethod
     def to_policy(cls) -> Policy:
         """Convert this class definition to a Policy dataclass."""
+        subject_matchers = tuple(cls.subject_matchers) if cls.subject_matchers else (SubjectMatcher.anyone(),)
+        resource_matchers = tuple(cls.resource_matchers) if cls.resource_matchers else (ResourceMatcher(),)
         return Policy(
-            id=cls.id,
+            id=cls.policy_id,
             name=cls.name,
             effect=cls.effect,
-            subjects=cls.subject,
+            subject_matchers=subject_matchers,
             actions=frozenset(cls.actions),
-            resources=cls.resources,
+            resource_matchers=resource_matchers,
             conditions=tuple(cls.conditions),
             description=cls.description,
             priority=cls.priority,
@@ -124,6 +126,10 @@ class CodePolicySet:
     def get(self, policy_id: str) -> Policy | None:
         return self._policies.get(policy_id)
 
+    def unregister(self, policy_id: str) -> None:
+        """Remove a registered policy by ID."""
+        self._policies.pop(policy_id, None)
+
     def clear(self) -> None:
         """Remove all registered code policies. Useful for testing."""
         self._policies.clear()
@@ -156,7 +162,10 @@ class CodeDefinedPolicyLoader:
             if not policy.is_active:
                 continue
             # Filter by resource type
-            if resource_type not in policy.resources.types:
+            if not any(
+                m.types is None or m.types == resource_type
+                for m in policy.resource_matchers
+            ):
                 continue
             result.append(policy)
         return result

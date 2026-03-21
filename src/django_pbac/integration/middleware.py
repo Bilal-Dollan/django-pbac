@@ -23,6 +23,11 @@ from django.http import HttpRequest, HttpResponse
 from django_pbac.core.models import Context, Subject
 from django_pbac.core.types import SubjectType
 
+try:
+    from django_pbac.engine import pbac_engine
+except Exception:  # noqa: BLE001
+    pbac_engine = None  # type: ignore[assignment]
+
 
 logger = logging.getLogger(__name__)
 

@@ -98,6 +98,92 @@ All files specified in the original specification have been created.
 - `tests/conftest.py` (shared fixtures: subjects, resources, policies, evaluator)
 - `tests/settings.py` (minimal Django settings for tests)
 - `pytest.ini` (pytest config with DJANGO_SETTINGS_MODULE)
+
+---
+
+## Phase 10 — Bug Fixes & Test Suite Stabilisation
+
+**Status: ✅ All 126 tests passing**
+
+A full test-suite audit surfaced mismatches between the generated source and the
+test-defined API contract. All issues were resolved; tests are the authoritative
+spec.
+
+### Build / Config
+
+| File | Fix |
+|---|---|
+| `pyproject.toml` | `build-backend` corrected to `setuptools.build_meta` |
+| `pytest.ini` | Converted from TOML to INI format; added `pythonpath = . src` |
+
+### `core/types.py`
+- All enum values changed to UPPERCASE strings:  
+  `ConflictResolution.DENY_OVERRIDE` / `PERMIT_OVERRIDE` / `FIRST_APPLICABLE`  
+  `SubjectType.USER` / `SERVICE` / `API_KEY` / `ANONYMOUS`
+
+### `core/models.py`
+- **`Subject`**: added `roles: frozenset[str] = field(default_factory=frozenset)` as a
+  first-class field; `has_role()` / `has_any_role()` read from this field.
+- **`SubjectMatcher`**: renamed `user_ids` → `id: str | None`; added
+  `type: SubjectType | None`; renamed `attribute_conditions` → `attributes`;
+  `roles` default changed from `None` to `frozenset()`.
+- **`ResourceMatcher`**: `types` is now `str | None` (single string, `None` = match any);
+  renamed `ids` → `id: str | None`; renamed `attribute_conditions` → `attributes`;
+  added `@property type` as an alias for `types`.
+- **`Policy`**: `subjects` → `subject_matchers: tuple[SubjectMatcher, ...]`;
+  `resources` → `resource_matchers: tuple[ResourceMatcher, ...]`;
+  `name` now has a default of `""`.
+- **`Context`**: `extra` renamed to `environment`; `with_extra()` → `with_environment()`.
+- **`PolicyDecision`**: `evaluation_trace` renamed to `trace`; `reason` now has
+  default `""`.
+
+### `core/operators.py`
+- `OperatorRegistry.get(name)` now raises `KeyError` for unknown operators (was silent
+  `None`).
+- `resolve_attribute` / `_resolve_context`: added support for `context.environment.<key>`
+  path (legacy `context.extra.<key>` also kept for compatibility).
+
+### `core/matchers.py`
+- `subject_matcher_matches` / `resource_matcher_matches` now accept `PolicyRequest`
+  directly in addition to plain `Subject` / `Resource`.
+- All field references updated to new names (`id`, `attributes`, `type`).
+
+### `core/evaluator.py`
+- `_evaluate_policy`: iterates `policy.subject_matchers` and `policy.resource_matchers`
+  (was single-item `policy.subjects` / `policy.resources`).
+- All `PolicyDecision` construction uses `trace=` (was `evaluation_trace=`).
+- `get_permitted_resource_filter` updated for new matcher structure.
+
+### `loaders/code.py`
+- `BaseCodePolicy`: class attribute renamed `id` → `policy_id`; `subject` /
+  `resources` replaced by `subject_matchers` / `resource_matchers` (lists).
+- `CodePolicySet.unregister(policy_id)` method **added**.
+- `CodeDefinedPolicyLoader.load_for_request`: replaced stale `policy.resources.types`
+  lookup with iteration over `policy.resource_matchers`.
+
+### `loaders/yaml_loader.py`
+- `__init__` parameter renamed `dirs` → `directories`.
+- `_parse_policy`: `name` field is now optional (defaults to `""`).
+- Parser supports both list-of-matchers format (`subject_matchers:` /
+  `resource_matchers:`) and legacy dict format (`subject:` / `resources:`).
+- Uppercase enum values used throughout.
+
+### `injectors/user.py`
+- `user.groups.values_list("name", flat=True)` → `[g.name for g in user.groups.all()]`
+  (compatible with non-standard user models).
+- `Subject` constructed with `roles=frozenset(groups)`.
+
+### `injectors/request_meta.py`
+- `inject_context` now copies `ip` and `user_agent` into `context.environment` dict
+  in addition to setting dedicated `ip_address` / `user_agent` fields.
+
+### `integration/middleware.py`
+- Module-level `pbac_engine` import wrapped in a try/except to prevent startup
+  failures when settings are not yet configured.
+
+### `tests/conftest.py`
+- `ResourceMatcher(type=...)` call-site corrected to `ResourceMatcher(types=...)`.
+- `context_default` fixture uses `environment=` kwarg.
 - `tests/core/__init__.py`
 - `tests/core/test_types.py`
 - `tests/core/test_models.py`

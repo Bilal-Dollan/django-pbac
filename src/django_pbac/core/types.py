@@ -31,9 +31,9 @@ class ConflictResolution(str, Enum):
         policy determines the outcome. Similar to firewall rule semantics.
     """
 
-    DENY_OVERRIDE = "deny_override"  # ✅ DEFAULT
-    PERMIT_OVERRIDE = "permit_override"
-    FIRST_APPLICABLE = "first_applicable"
+    DENY_OVERRIDE = "DENY_OVERRIDE"  # ✅ DEFAULT
+    PERMIT_OVERRIDE = "PERMIT_OVERRIDE"
+    FIRST_APPLICABLE = "FIRST_APPLICABLE"
 
 
 class PolicySourceType(str, Enum):
@@ -47,7 +47,7 @@ class PolicySourceType(str, Enum):
 class SubjectType(str, Enum):
     """The type of principal making the request."""
 
-    USER = "user"
-    SERVICE = "service"
-    API_KEY = "api_key"
-    ANONYMOUS = "anonymous"
+    USER = "USER"
+    SERVICE = "SERVICE"
+    API_KEY = "API_KEY"
+    ANONYMOUS = "ANONYMOUS"

@@ -67,12 +67,12 @@ class YAMLPolicyLoader:
     ``reload()`` to re-read from disk.
     """
 
-    def __init__(self, dirs: list[str | Path] | None = None) -> None:
+    def __init__(self, directories: list[str | Path] | None = None) -> None:
         self._dirs: list[Path] = []
         self._policies: dict[str, Policy] = {}
 
-        if dirs:
-            for d in dirs:
+        if directories:
+            for d in directories:
                 self._dirs.append(Path(d))
         else:
             self._load_from_settings()
@@ -130,7 +130,10 @@ class YAMLPolicyLoader:
     ) -> list[Policy]:
         return [
             p for p in self._policies.values()
-            if p.is_active and resource_type in p.resources.types
+            if p.is_active and any(
+                m.types is None or m.types == resource_type
+                for m in p.resource_matchers
+            )
         ]
 
     def load_all(self) -> list[Policy]:
@@ -155,15 +158,28 @@ class YAMLPolicyLoader:
         """Parse a raw YAML dict into a Policy dataclass."""
         try:
             policy_id = str(raw.get("id") or str(uuid.uuid4()))
-            name = raw["name"]
+            name = raw.get("name", "")
             effect = Effect(raw["effect"].upper())
             actions = frozenset(raw["actions"])
 
             subject_raw = raw.get("subject", {})
-            subjects = self._parse_subject_matcher(subject_raw)
+            # Support both 'subject_matchers' list format and legacy 'subject' dict format
+            subject_matchers_raw = raw.get("subject_matchers", None)
+            if subject_matchers_raw is not None:
+                subject_matchers = tuple(
+                    self._parse_subject_matcher(sm) for sm in subject_matchers_raw
+                )
+            else:
+                subject_matchers = (self._parse_subject_matcher(subject_raw),)
 
-            resource_raw = raw.get("resources", {})
-            resources = self._parse_resource_matcher(resource_raw)
+            resource_matchers_raw = raw.get("resource_matchers", None)
+            if resource_matchers_raw is not None:
+                resource_matchers = tuple(
+                    self._parse_resource_matcher(rm) for rm in resource_matchers_raw
+                )
+            else:
+                resource_raw = raw.get("resources", {})
+                resource_matchers = (self._parse_resource_matcher(resource_raw),)
 
             conditions = tuple(
                 self._parse_condition(c) for c in raw.get("conditions", [])
@@ -173,16 +189,16 @@ class YAMLPolicyLoader:
                 id=policy_id,
                 name=name,
                 effect=effect,
-                subjects=subjects,
+                subject_matchers=subject_matchers,
                 actions=actions,
-                resources=resources,
+                resource_matchers=resource_matchers,
                 conditions=conditions,
                 description=raw.get("description", ""),
                 priority=int(raw.get("priority", 0)),
                 conflict_resolution=ConflictResolution(
-                    raw.get("conflict_resolution", "deny_override")
+                    raw.get("conflict_resolution", "DENY_OVERRIDE")
                 ),
-                is_active=bool(raw.get("is_active", True)),
+                is_active=bool(raw.get("is_active", raw.get("enabled", True))),
                 created_by=raw.get("created_by", "yaml"),
                 tags=frozenset(raw.get("tags", [])),
                 source=PolicySourceType.YAML,
@@ -194,22 +210,22 @@ class YAMLPolicyLoader:
 
     def _parse_subject_matcher(self, raw: dict[str, Any]) -> SubjectMatcher:
         return SubjectMatcher(
-            user_ids=frozenset(raw["user_ids"]) if "user_ids" in raw else None,
+            id=raw.get("id") or (raw["user_ids"][0] if "user_ids" in raw else None),
             subject_types=(
-                frozenset(SubjectType(t) for t in raw["subject_types"])
+                frozenset(SubjectType(t.upper()) for t in raw["subject_types"])
                 if "subject_types" in raw
                 else None
             ),
-            roles=frozenset(raw["roles"]) if "roles" in raw else None,
+            roles=frozenset(raw["roles"]) if "roles" in raw else frozenset(),
             groups=frozenset(raw["groups"]) if "groups" in raw else None,
-            attribute_conditions=raw.get("attribute_conditions"),
+            attributes=raw.get("attributes") or raw.get("attribute_conditions"),
         )
 
     def _parse_resource_matcher(self, raw: dict[str, Any]) -> ResourceMatcher:
         return ResourceMatcher(
-            types=frozenset(raw.get("types", [])),
-            ids=frozenset(raw["ids"]) if "ids" in raw else None,
-            attribute_conditions=raw.get("attribute_conditions"),
+            types=raw.get("type") or (raw.get("types", [None])[0] if isinstance(raw.get("types"), list) else raw.get("types")),
+            id=raw.get("id") or (raw["ids"][0] if "ids" in raw else None),
+            attributes=raw.get("attributes") or raw.get("attribute_conditions"),
             ancestor_conditions=raw.get("ancestor_conditions"),
         )
 

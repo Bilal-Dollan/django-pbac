@@ -51,8 +51,8 @@ It can be tested in isolation without a Django app setup.
 ## Evaluation Algorithm (PolicyEvaluator.evaluate)
 
 1. Find all policies where `action` matches (exact, wildcard `ns:*`, global `*`)
-2. For each candidate policy, check all `subject_matchers` — ANY must match
-3. For each remaining policy, check all `resource_matchers` — ANY must match
+2. For each candidate policy, check **all** `subject_matchers` — ANY must match
+3. For each remaining policy, check **all** `resource_matchers` — ANY must match
 4. For each remaining policy, evaluate all `conditions` — ALL must pass
 5. Collect PERMIT set and DENY set
 6. Apply conflict resolution:
@@ -60,6 +60,11 @@ It can be tested in isolation without a Django app setup.
    - **PERMIT_OVERRIDE**: if PERMIT set non-empty → PERMIT. Else if DENY set non-empty → DENY. Else → DENY
    - **FIRST_APPLICABLE**: sort all matching by priority (desc), return first matching effect
 7. Return `PolicyDecision` (immutable, with optional `trace`)
+
+> **Note**: `Policy.subject_matchers` and `Policy.resource_matchers` are
+> `tuple[SubjectMatcher, ...]` and `tuple[ResourceMatcher, ...]`
+> respectively. A policy matches if ANY subject matcher and ANY resource
+> matcher both match (OR semantics within each tuple, AND between them).
 
 ## Data Flow for Queryset Filtering
 

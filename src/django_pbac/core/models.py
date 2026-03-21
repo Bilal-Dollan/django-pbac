@@ -38,6 +38,7 @@ class Subject:
 
     id: str
     type: SubjectType = SubjectType.USER
+    roles: frozenset[str] = field(default_factory=frozenset)
     attributes: dict[str, Any] = field(default_factory=dict)
 
     def with_attribute(self, key: str, value: Any) -> Self:
@@ -47,11 +48,11 @@ class Subject:
 
     def has_role(self, role: str) -> bool:
         """Return True if the subject has the given role."""
-        return role in self.attributes.get("roles", [])
+        return role in self.roles
 
     def has_any_role(self, roles: list[str]) -> bool:
         """Return True if the subject has any of the given roles."""
-        return bool(set(roles) & set(self.attributes.get("roles", [])))
+        return bool(set(roles) & self.roles)
 
     @classmethod
     def anonymous(cls) -> Self:
@@ -118,11 +119,11 @@ class Context:
     ip_address: str | None = None
     user_agent: str | None = None
     request_id: str = field(default_factory=lambda: str(uuid4()))
-    extra: dict[str, Any] = field(default_factory=dict)
+    environment: dict[str, Any] = field(default_factory=dict)
 
-    def with_extra(self, key: str, value: Any) -> Self:
-        """Return new Context with an additional extra field."""
-        return replace(self, extra={**self.extra, key: value})
+    def with_environment(self, key: str, value: Any) -> Self:
+        """Return new Context with an additional environment field."""
+        return replace(self, environment={**self.environment, key: value})
 
 
 # ---------------------------------------------------------------------------
@@ -227,11 +228,12 @@ class SubjectMatcher:
         )
     """
 
-    user_ids: frozenset[str] | None = None
+    id: str | None = None
+    type: SubjectType | None = None
     subject_types: frozenset[SubjectType] | None = None
-    roles: frozenset[str] | None = None
+    roles: frozenset[str] = field(default_factory=frozenset)
     groups: frozenset[str] | None = None
-    attribute_conditions: dict[str, Any] | None = None
+    attributes: dict[str, Any] | None = None
 
     @classmethod
     def anyone(cls) -> Self:
@@ -278,10 +280,15 @@ class ResourceMatcher:
         ``Resource.with_ancestors()`` to enable attribute-level ancestor matching.
     """
 
-    types: frozenset[str]
-    ids: frozenset[str] | None = None
-    attribute_conditions: dict[str, Any] | None = None
+    types: str | None = None
+    id: str | None = None
+    attributes: dict[str, Any] | None = None
     ancestor_conditions: list[dict[str, Any]] | None = None
+
+    @property
+    def type(self) -> str | None:
+        """Alias for types (singular access)."""
+        return self.types
 
 
 # ---------------------------------------------------------------------------
@@ -303,12 +310,12 @@ class Policy:
     """
 
     id: str
-    name: str
     effect: Effect
-    subjects: SubjectMatcher
+    subject_matchers: tuple[SubjectMatcher, ...]
     actions: frozenset[str]
-    resources: ResourceMatcher
+    resource_matchers: tuple[ResourceMatcher, ...]
     conditions: tuple[Condition, ...] = field(default_factory=tuple)
+    name: str = ""
     description: str = ""
     priority: int = 0
     conflict_resolution: ConflictResolution = ConflictResolution.DENY_OVERRIDE
@@ -321,12 +328,8 @@ class Policy:
     tags: frozenset[str] = field(default_factory=frozenset)
 
     def __post_init__(self) -> None:
-        if not self.name:
-            raise ValueError("Policy name cannot be empty.")
         if not self.actions:
             raise ValueError("Policy must specify at least one action.")
-        if not self.resources.types:
-            raise ValueError("ResourceMatcher must specify at least one resource type.")
 
     def is_valid_at(self, dt: datetime) -> bool:
         """Return True if this policy is valid (not expired) at the given datetime."""
@@ -370,12 +373,12 @@ class PolicyDecision:
     """
 
     effect: Effect
-    reason: str
     request: PolicyRequest
+    reason: str = ""
     matched_policies: tuple[str, ...] = field(default_factory=tuple)
     denied_by: str | None = None
     permitted_by: str | None = None
-    evaluation_trace: tuple[EvaluationStep, ...] = field(default_factory=tuple)
+    trace: tuple[EvaluationStep, ...] = field(default_factory=tuple)
     evaluation_time_ms: float = 0.0
     evaluated_policy_count: int = 0
 

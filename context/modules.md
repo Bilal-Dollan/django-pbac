@@ -19,9 +19,9 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 | `types.py` | `Effect`, `ConflictResolution`, `PolicySourceType`, `SubjectType` | ✅ |
 | `exceptions.py` | `PBACError`, `PolicyNotFound`, `EvaluationError`, `ConfigurationError` | ✅ |
 | `models.py` | `Subject`, `Resource`, `Context`, `PolicyRequest`, `Condition`, `SubjectMatcher`, `ResourceMatcher`, `Policy`, `PolicyDecision`, `EvaluationStep`, `ResourceFilter` | ✅ |
-| `operators.py` | `OperatorRegistry`, `operator_registry`, 22 operators, `resolve_attribute`, `resolve_condition_value` | ✅ |
-| `matchers.py` | `action_matches`, `subject_matcher_matches`, `resource_matcher_matches` | ✅ |
-| `evaluator.py` | `PolicyEvaluator.evaluate()`, `get_permitted_resource_filter()` | ✅ |
+| `operators.py` | `OperatorRegistry`, `operator_registry`, 22 operators, `resolve_attribute`, `resolve_condition_value` — `get(name)` raises `KeyError` for unknown ops | ✅ |
+| `matchers.py` | `action_matches`, `subject_matcher_matches`, `resource_matcher_matches` — accept `PolicyRequest` directly | ✅ |
+| `evaluator.py` | `PolicyEvaluator.evaluate()`, `get_permitted_resource_filter()` — iterates `subject_matchers`/`resource_matchers` tuples | ✅ |
 
 ## loaders/
 
@@ -30,8 +30,8 @@ All modules in `src/django_pbac/`. Status: ✅ Complete.
 | `__init__.py` | re-exports | ✅ |
 | `base.py` | `PolicyLoader` Protocol | ✅ |
 | `db.py` | `DatabasePolicyLoader` | ✅ |
-| `code.py` | `BaseCodePolicy`, `CodePolicySet`, `CodeDefinedPolicyLoader`, `code_policy_set` | ✅ |
-| `yaml_loader.py` | `YAMLPolicyLoader` | ✅ |
+| `code.py` | `BaseCodePolicy` (use `policy_id`/`subject_matchers`/`resource_matchers`), `CodePolicySet` (+ `unregister()`), `CodeDefinedPolicyLoader`, `code_policy_set` | ✅ |
+| `yaml_loader.py` | `YAMLPolicyLoader(directories=[...])` — `name` field optional in YAML, supports list-of-matchers format | ✅ |
 | `composite.py` | `CompositePolicyLoader`, `CompositePolicyLoader.from_settings()` | ✅ |
 
 ## injectors/

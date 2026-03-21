@@ -118,5 +118,103 @@ ip_in_cidr, date_before) is very complex and operator-specific.
 
 **Consequences**:
 - Simple attribute-based filters work out of the box
+
+---
+
+## ADR-008: Enum values use UPPERCASE strings
+
+**Date**: 2026-03  
+**Status**: Accepted
+
+**Context**: Initial code generated lowercase enum values (`"deny_override"`, `"user"`).
+The test suite uses `Effect.PERMIT`, `SubjectType.USER`, etc. via Python
+attribute access. The string values must also be uppercase so that YAML/JSON
+configs (`effect: PERMIT`) parse without any `.upper()` normalisation being
+applied to enum keys.
+
+**Decision**: All enum string values are UPPERCASE:
+- `ConflictResolution.DENY_OVERRIDE = "DENY_OVERRIDE"`
+- `SubjectType.USER = "USER"`, `SubjectType.SERVICE = "SERVICE"`, etc.
+
+**Consequences**:
+- YAML policy files must use uppercase for `effect:`, `subject_type:`, `conflict_resolution:`
+- Existing stored data using lowercase values would require a migration
+
+---
+
+## ADR-009: Policy uses tuples of matchers, not single matcher instances
+
+**Date**: 2026-03  
+**Status**: Accepted
+
+**Context**: The original spec used a single `subject: SubjectMatcher` and
+`resources: ResourceMatcher` on `Policy`. The tests require
+`subject_matchers: tuple[SubjectMatcher, ...]` and
+`resource_matchers: tuple[ResourceMatcher, ...]`, enabling richer policies
+that can match multiple subject or resource types.
+
+**Decision**: `Policy` holds `subject_matchers` and `resource_matchers` as tuples.
+Code loaders and YAML loaders both produce tuples. Matching applies OR semantics
+within each tuple.
+
+**Consequences**:
+- `BaseCodePolicy` subclasses declare `subject_matchers` / `resource_matchers` as lists
+  which `to_policy()` converts to tuples.
+- YAML supports `subject_matchers:` list key alongside legacy `subject:` dict key.
+- The evaluator iterates with `any(... for m in policy.subject_matchers)`.
+
+## ADR-011: ResourceMatcher.types is a single string, not a frozenset
+
+**Date**: 2026-03  
+**Status**: Accepted
+
+**Context**: The original spec typed `ResourceMatcher.types` as `frozenset[str] | None`,
+allowing a single matcher to match several resource types. The test suite always passes
+a single string (`types="document"`) or `None` (match any).
+
+**Decision**: `ResourceMatcher.types: str | None`. `None` means "match any resource type".
+To match more than one type, add multiple `ResourceMatcher` entries to
+`Policy.resource_matchers` (which already uses OR semantics within the tuple).
+
+**Breaking change**: Any code or YAML that relied on a `types` frozenset containing
+multiple values on a single `ResourceMatcher` will no longer work. Migrate by splitting
+into multiple matchers:
+
+```python
+# Before (broken)
+ResourceMatcher(types=frozenset({"document", "report"}))
+
+# After
+resource_matchers=[
+    ResourceMatcher(types="document"),
+    ResourceMatcher(types="report"),
+]
+```
+
+**Consequences**:
+- `ResourceMatcher.type` property is an alias for `types` (both return `str | None`)
+- `load_for_request` in code/YAML loaders uses `m.types is None or m.types == resource_type`
+
+---
+
+## ADR-010: Context.environment replaces Context.extra
+
+**Date**: 2026-03  
+**Status**: Accepted
+
+**Context**: The `Context` dataclass originally had an `extra: dict` field.
+The test suite uses `environment` throughout (consistent with XACML PIP
+terminology for ambient environment attributes).
+
+**Decision**: Field renamed to `environment`; helper `with_environment()` replaces
+`with_extra()`. `RequestMetadataInjector` populates both `ip_address` (dedicated
+field) and `environment["ip"]` (dict key) for attribute-path resolution
+(`context.environment.ip`).
+
+**Consequences**:
+- Attribute paths using `context.environment.<key>` resolve via
+  `_resolve_context` in `operators.py`.
+- Old `context.extra` paths no longer work unless the compat shim in
+  `_resolve_context` is kept.
 - Complex operator policies require manual queryset filtering
 - v2 will add extensible operator-to-ORM-lookup translation

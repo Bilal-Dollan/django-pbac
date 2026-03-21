@@ -98,11 +98,11 @@ class TestResourceMatcherMatches:
         assert resource_matcher_matches(m, policy_request) is True
 
     def test_type_match(self, policy_request) -> None:
-        m = ResourceMatcher(type="document")
+        m = ResourceMatcher(types="document")
         assert resource_matcher_matches(m, policy_request) is True
 
     def test_type_no_match(self, policy_request) -> None:
-        m = ResourceMatcher(type="report")
+        m = ResourceMatcher(types="report")
         assert resource_matcher_matches(m, policy_request) is False
 
     def test_id_match(self, policy_request) -> None:

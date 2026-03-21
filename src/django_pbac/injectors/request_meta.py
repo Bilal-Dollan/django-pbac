@@ -57,10 +57,16 @@ class RequestMetadataInjector:
             or str(uuid.uuid4())
         )
 
+        env = dict(context.environment)
+        if ip:
+            env["ip"] = ip
+        if user_agent:
+            env["user_agent"] = user_agent
+
         return context.__class__(
             timestamp=datetime.now(timezone.utc),
             ip_address=ip,
             user_agent=user_agent,
             request_id=request_id,
-            extra=context.extra,
+            environment=env,
         )

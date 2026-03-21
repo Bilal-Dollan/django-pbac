@@ -21,7 +21,7 @@ class PermitReadPolicy(BaseCodePolicy):
     effect = Effect.PERMIT
     actions = {"documents:read"}
     subject_matchers = [SubjectMatcher()]
-    resource_matchers = [ResourceMatcher(type="document")]
+    resource_matchers = [ResourceMatcher(types="document")]
 
 
 class DenyWritePolicy(BaseCodePolicy):

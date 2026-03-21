@@ -37,7 +37,7 @@ def permit_decision() -> PolicyDecision:
         effect=Effect.PERMIT,
         actions=frozenset({"documents:read"}),
         subject_matchers=(SubjectMatcher(),),
-        resource_matchers=(ResourceMatcher(type="document"),),
+        resource_matchers=(ResourceMatcher(types="document"),),
         conditions=(),
     )
     return PolicyDecision(

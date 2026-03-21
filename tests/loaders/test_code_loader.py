@@ -24,7 +24,7 @@ class ReadDocumentPolicy(BaseCodePolicy):
     effect = Effect.PERMIT
     actions = {"documents:read"}
     subject_matchers = [SubjectMatcher(roles=frozenset({"viewer"}))]
-    resource_matchers = [ResourceMatcher(type="document")]
+    resource_matchers = [ResourceMatcher(types="document")]
 
 
 class DenyGuestPolicy(BaseCodePolicy):

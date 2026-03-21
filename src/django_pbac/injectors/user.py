@@ -42,10 +42,9 @@ class UserAttributeInjector:
         if user is None or not getattr(user, "is_authenticated", False):
             return Subject.anonymous()
 
-        # Base attributes
-        groups = list(user.groups.values_list("name", flat=True))
+        # Base attributes — use groups.all() for compatibility with mocks
+        groups = [g.name for g in user.groups.all()]
         attrs: dict[str, Any] = {
-            "roles": groups,  # use group names as roles
             "groups": groups,
             "is_staff": getattr(user, "is_staff", False),
             "is_superuser": getattr(user, "is_superuser", False),
@@ -67,6 +66,7 @@ class UserAttributeInjector:
         return Subject(
             id=str(user.pk),
             type=SubjectType.USER,
+            roles=frozenset(groups),
             attributes=attrs,
         )
 

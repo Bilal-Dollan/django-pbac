@@ -15,6 +15,7 @@ from typing import Any
 
 from django_pbac.core.exceptions import ConfigurationError
 from django_pbac.core.models import Resource, ResourceMatcher, Subject, SubjectMatcher
+from django_pbac.core.models import PolicyRequest
 from django_pbac.core.operators import operator_registry, resolve_condition_value
 
 
@@ -69,23 +70,29 @@ def action_matches(pattern: str, action: str) -> bool:
 # SubjectMatcher
 # ---------------------------------------------------------------------------
 
-def subject_matcher_matches(matcher: SubjectMatcher, subject: Subject) -> bool:
+def subject_matcher_matches(matcher: SubjectMatcher, request_or_subject: "PolicyRequest | Subject") -> bool:
     """
     Return True if the subject satisfies ALL criteria in the matcher.
 
-    An empty SubjectMatcher (all None) matches ANY subject including anonymous.
+    An empty SubjectMatcher (all None/empty) matches ANY subject including anonymous.
+    Accepts either a PolicyRequest or a Subject directly.
     """
-    # user_ids: subject.id must be in the set
-    if matcher.user_ids is not None and subject.id not in matcher.user_ids:
+    subject = request_or_subject.subject if isinstance(request_or_subject, PolicyRequest) else request_or_subject
+    # id: subject.id must match
+    if matcher.id is not None and subject.id != matcher.id:
+        return False
+
+    # type: single-type shorthand
+    if matcher.type is not None and subject.type != matcher.type:
         return False
 
     # subject_types: subject.type must be in the set
     if matcher.subject_types is not None and subject.type not in matcher.subject_types:
         return False
 
-    # roles: subject must have ANY of the specified roles
-    if matcher.roles is not None:
-        if not subject.has_any_role(list(matcher.roles)):
+    # roles: subject must have ANY of the specified roles (skip if empty)
+    if matcher.roles:
+        if not (matcher.roles & subject.roles):
             return False
 
     # groups: subject must be in ANY of the specified groups
@@ -94,9 +101,9 @@ def subject_matcher_matches(matcher: SubjectMatcher, subject: Subject) -> bool:
         if not (set(matcher.groups) & subject_groups):
             return False
 
-    # attribute_conditions: each k→v must hold
-    if matcher.attribute_conditions is not None:
-        for attr_key, expected in matcher.attribute_conditions.items():
+    # attributes: each k→v must hold
+    if matcher.attributes is not None:
+        for attr_key, expected in matcher.attributes.items():
             actual = subject.attributes.get(attr_key)
             if not _evaluate_attribute_condition(actual, expected):
                 return False
@@ -110,25 +117,32 @@ def subject_matcher_matches(matcher: SubjectMatcher, subject: Subject) -> bool:
 
 def resource_matcher_matches(
     matcher: ResourceMatcher,
-    resource: Resource,
-    subject: Subject,
+    request_or_resource: "PolicyRequest | Resource",
+    subject: "Subject | None" = None,
 ) -> bool:
     """
     Return True if the resource satisfies ALL criteria in the matcher.
 
-    ``subject`` is required for cross-reference resolution in attribute conditions.
+    Accepts either a PolicyRequest (preferred) or a (Resource, Subject) pair.
     """
-    # types: resource.type must be in the set
-    if resource.type not in matcher.types:
+    if isinstance(request_or_resource, PolicyRequest):
+        resource = request_or_resource.resource
+        subject = request_or_resource.subject
+    else:
+        resource = request_or_resource
+        if subject is None:
+            raise ValueError("subject is required when passing a Resource directly")
+    # types: if specified, resource.type must match exactly
+    if matcher.types is not None and resource.type != matcher.types:
         return False
 
-    # ids: if specified, resource.id must be in the set
-    if matcher.ids is not None and resource.id not in matcher.ids:
+    # id: if specified, resource.id must match exactly
+    if matcher.id is not None and resource.id != matcher.id:
         return False
 
-    # attribute_conditions
-    if matcher.attribute_conditions is not None:
-        for attr_key, expected in matcher.attribute_conditions.items():
+    # attributes
+    if matcher.attributes is not None:
+        for attr_key, expected in matcher.attributes.items():
             actual = resource.attributes.get(attr_key)
             # Resolve cross-references against the subject
             resolved_expected = _resolve_ref_against_subject(expected, subject)

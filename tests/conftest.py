@@ -109,7 +109,7 @@ def permit_policy_any_doc_read() -> Policy:
             ),
         ),
         resource_matchers=(
-            ResourceMatcher(type="document"),
+            ResourceMatcher(types="document"),
         ),
         conditions=(),
         priority=10,
@@ -130,7 +130,7 @@ def deny_policy_low_clearance() -> Policy:
         ),
         resource_matchers=(
             ResourceMatcher(
-                type="document",
+                types="document",
                 attributes={"classification": "internal"},
             ),
         ),
@@ -151,7 +151,7 @@ def permit_policy_owner_edit() -> Policy:
         ),
         resource_matchers=(
             ResourceMatcher(
-                type="document",
+                types="document",
                 attributes={"owner": {"ref": "subject.id"}},
             ),
         ),

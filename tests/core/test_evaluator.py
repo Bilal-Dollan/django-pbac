@@ -87,7 +87,7 @@ def permit_read_policy() -> Policy:
         effect=Effect.PERMIT,
         actions=frozenset({"documents:read"}),
         subject_matchers=(SubjectMatcher(roles=frozenset({"viewer"})),),
-        resource_matchers=(ResourceMatcher(type="document"),),
+        resource_matchers=(ResourceMatcher(types="document"),),
         conditions=(),
         priority=10,
     )
@@ -100,7 +100,7 @@ def deny_low_clearance_policy() -> Policy:
         effect=Effect.DENY,
         actions=frozenset({"documents:read"}),
         subject_matchers=(SubjectMatcher(attributes={"clearance": "low"}),),
-        resource_matchers=(ResourceMatcher(type="document", attributes={"classification": "internal"}),),
+        resource_matchers=(ResourceMatcher(types="document", attributes={"classification": "internal"}),),
         conditions=(),
         priority=100,
     )
@@ -146,7 +146,7 @@ class TestPermitWithMatchingPolicy:
             effect=Effect.PERMIT,
             actions=frozenset({"documents:*"}),
             subject_matchers=(SubjectMatcher(),),
-            resource_matchers=(ResourceMatcher(type="document"),),
+            resource_matchers=(ResourceMatcher(types="document"),),
             conditions=(),
         )
         ev = make_evaluator()
@@ -176,7 +176,7 @@ class TestDenyOverride:
             effect=Effect.DENY,
             actions=frozenset({"documents:read"}),
             subject_matchers=(SubjectMatcher(),),
-            resource_matchers=(ResourceMatcher(type="document"),),
+            resource_matchers=(ResourceMatcher(types="document"),),
             conditions=(),
         )
         ev = make_evaluator(ConflictResolution.DENY_OVERRIDE)
@@ -206,7 +206,7 @@ class TestFirstApplicable:
             effect=Effect.DENY,
             actions=frozenset({"documents:read"}),
             subject_matchers=(SubjectMatcher(),),
-            resource_matchers=(ResourceMatcher(type="document"),),
+            resource_matchers=(ResourceMatcher(types="document"),),
             conditions=(),
             priority=99,  # Higher priority = evaluated first
         )
@@ -225,7 +225,7 @@ class TestConditions:
             effect=Effect.PERMIT,
             actions=frozenset({"documents:read"}),
             subject_matchers=(SubjectMatcher(),),
-            resource_matchers=(ResourceMatcher(type="document"),),
+            resource_matchers=(ResourceMatcher(types="document"),),
             conditions=(
                 Condition(
                     attribute="subject.attributes.department",
@@ -245,7 +245,7 @@ class TestConditions:
             effect=Effect.PERMIT,
             actions=frozenset({"documents:read"}),
             subject_matchers=(SubjectMatcher(),),
-            resource_matchers=(ResourceMatcher(type="document"),),
+            resource_matchers=(ResourceMatcher(types="document"),),
             conditions=(
                 Condition(
                     attribute="subject.attributes.department",
@@ -265,7 +265,7 @@ class TestConditions:
             effect=Effect.PERMIT,
             actions=frozenset({"documents:read"}),
             subject_matchers=(SubjectMatcher(),),
-            resource_matchers=(ResourceMatcher(type="document"),),
+            resource_matchers=(ResourceMatcher(types="document"),),
             conditions=(
                 Condition(
                     attribute="subject.attributes.department",

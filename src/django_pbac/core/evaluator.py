@@ -149,8 +149,12 @@ class PolicyEvaluator:
                 False,
             )
 
-        # Resource type matching (fast path before full matcher)
-        if request.resource.type not in policy.resources.types:
+        # Resource type matching (fast path)
+        type_matched = any(
+            m.types is None or m.types == request.resource.type
+            for m in policy.resource_matchers
+        )
+        if not type_matched:
             return (
                 EvaluationStep(
                     policy_id=policy.id,
@@ -163,7 +167,7 @@ class PolicyEvaluator:
             )
 
         # Subject matching
-        if not subject_matcher_matches(policy.subjects, request.subject):
+        if not any(subject_matcher_matches(m, request) for m in policy.subject_matchers):
             return (
                 EvaluationStep(
                     policy_id=policy.id,
@@ -176,7 +180,7 @@ class PolicyEvaluator:
             )
 
         # Resource matching
-        if not resource_matcher_matches(policy.resources, request.resource, request.subject):
+        if not any(resource_matcher_matches(m, request) for m in policy.resource_matchers):
             return (
                 EvaluationStep(
                     policy_id=policy.id,
@@ -308,7 +312,7 @@ class PolicyEvaluator:
                 request=request,
                 matched_policies=tuple(matched_ids),
                 denied_by=best_deny.name,
-                evaluation_trace=trace,
+                trace=trace,
                 evaluation_time_ms=elapsed_ms,
                 evaluated_policy_count=evaluated_count,
             )
@@ -321,16 +325,16 @@ class PolicyEvaluator:
                 request=request,
                 matched_policies=tuple(matched_ids),
                 permitted_by=best_permit.name,
-                evaluation_trace=trace,
+                trace=trace,
                 evaluation_time_ms=elapsed_ms,
                 evaluated_policy_count=evaluated_count,
             )
 
-        return PolicyDecision.default_deny(request).__class__(
+        return PolicyDecision(
             effect=Effect.DENY,
             reason="No matching policy found. Default deny.",
             request=request,
-            evaluation_trace=trace,
+            trace=trace,
             evaluation_time_ms=elapsed_ms,
             evaluated_policy_count=evaluated_count,
         )
@@ -354,7 +358,7 @@ class PolicyEvaluator:
                 request=request,
                 matched_policies=tuple(matched_ids),
                 permitted_by=best_permit.name,
-                evaluation_trace=trace,
+                trace=trace,
                 evaluation_time_ms=elapsed_ms,
                 evaluated_policy_count=evaluated_count,
             )
@@ -367,7 +371,7 @@ class PolicyEvaluator:
                 request=request,
                 matched_policies=tuple(matched_ids),
                 denied_by=best_deny.name,
-                evaluation_trace=trace,
+                trace=trace,
                 evaluation_time_ms=elapsed_ms,
                 evaluated_policy_count=evaluated_count,
             )
@@ -376,7 +380,7 @@ class PolicyEvaluator:
             effect=Effect.DENY,
             reason="No matching policy found. Default deny.",
             request=request,
-            evaluation_trace=trace,
+            trace=trace,
             evaluation_time_ms=elapsed_ms,
             evaluated_policy_count=evaluated_count,
         )
@@ -403,7 +407,7 @@ class PolicyEvaluator:
                 effect=Effect.DENY,
                 reason="No matching policy found. Default deny.",
                 request=request,
-                evaluation_trace=trace,
+                trace=trace,
                 evaluation_time_ms=elapsed_ms,
                 evaluated_policy_count=evaluated_count,
             )
@@ -416,7 +420,7 @@ class PolicyEvaluator:
                 request=request,
                 matched_policies=tuple(matched_ids),
                 permitted_by=first.name,
-                evaluation_trace=trace,
+                trace=trace,
                 evaluation_time_ms=elapsed_ms,
                 evaluated_policy_count=evaluated_count,
             )
@@ -427,7 +431,7 @@ class PolicyEvaluator:
                 request=request,
                 matched_policies=tuple(matched_ids),
                 denied_by=first.name,
-                evaluation_trace=trace,
+                trace=trace,
                 evaluation_time_ms=elapsed_ms,
                 evaluated_policy_count=evaluated_count,
             )
@@ -486,18 +490,18 @@ class PolicyEvaluator:
             if not any(action_matches(pat, action) for pat in policy.actions):
                 continue
             # Check resource type
-            if resource_type not in policy.resources.types:
+            if not any(m.types is None or m.types == resource_type for m in policy.resource_matchers):
                 continue
             # Check subject
-            if not subject_matcher_matches(policy.subjects, subject):
+            if not any(subject_matcher_matches(m, subject) for m in policy.subject_matchers):
                 continue
 
             if policy.effect == Effect.PERMIT:
                 relevant_permit.append(policy)
             elif policy.effect == Effect.DENY:
                 # Blanket deny: no resource attribute conditions
-                if not policy.resources.attribute_conditions and not policy.resources.ids:
-                    # Also check conditions are empty
+                first_rm = policy.resource_matchers[0] if policy.resource_matchers else None
+                if first_rm and not first_rm.attributes and not first_rm.id:
                     conditions_pass, _ = self.evaluate_conditions(policy, dummy_request)
                     if conditions_pass:
                         relevant_deny_blanket.append(policy)
@@ -520,8 +524,9 @@ class PolicyEvaluator:
 
         # Check for unrestricted permit
         for policy in relevant_permit:
+            first_rm = policy.resource_matchers[0] if policy.resource_matchers else None
             has_resource_conditions = bool(
-                policy.resources.attribute_conditions or policy.resources.ids
+                first_rm and (first_rm.attributes or first_rm.id)
             )
             if not has_resource_conditions:
                 return ResourceFilter(
