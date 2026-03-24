@@ -6,12 +6,10 @@
 > It may contain bugs, incomplete features, breaking API changes, and missing documentation.
 > Use at your own risk. Feedback, bug reports, and contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-[![CI](https://github.com/django-pbac/django-pbac/actions/workflows/ci.yml/badge.svg)](https://github.com/django-pbac/django-pbac/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/django-pbac.svg)](https://pypi.org/project/django-pbac/)
-[![Python](https://img.shields.io/pypi/pyversions/django-pbac.svg)](https://pypi.org/project/django-pbac/)
+[![CI](https://github.com/Bilal-Dollan/django-pbac/actions/workflows/ci.yml/badge.svg)](https://github.com/Bilal-Dollan/django-pbac/actions/workflows/ci.yml)
 [![Django](https://img.shields.io/badge/Django-4.2%2B-green.svg)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)]()
 
 Policy-Based Access Control (PBAC) for Django.
 
@@ -101,15 +99,8 @@ def document_detail(request, pk):
 
 ## Documentation
 
-Full documentation: [https://django-pbac.readthedocs.io](https://django-pbac.readthedocs.io)
-
-- [Quickstart](docs/quickstart.md)
-- [Core Concepts](docs/concepts.md)
-- [Writing Policies](docs/policies.md)
-- [Django Integration](docs/django-integration.md)
-- [Queryset Filtering](docs/queryset-filtering.md)
-- [Audit Logging](docs/audit-logging.md)
-- [Configuration Reference](docs/configuration.md)
+Documentation is a work in progress. See [docs/index.md](docs/index.md) for the current overview,
+and the [`example/`](example/) directory for a working Django project demonstrating the library.
 
 ## Architecture
 
@@ -127,7 +118,8 @@ making it independently testable and potentially reusable outside Django.
 ## Security
 
 This library is designed for security-critical use. Please report vulnerabilities
-to security@django-pbac.dev. Do not open public issues for security bugs.
+by opening a [GitHub Security Advisory](https://github.com/Bilal-Dollan/django-pbac/security/advisories/new).
+Do not open public issues for security bugs.
 
 ## Contributing
 
