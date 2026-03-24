@@ -139,7 +139,7 @@ INSTALLED_APPS = [
 ]
 
 PBAC = {
-    "CONFLICT_RESOLUTION": "deny_override",
+    "CONFLICT_RESOLUTION": "DENY_OVERRIDE",
     "POLICY_LOADERS": [
         "django_pbac.loaders.db.DatabasePolicyLoader",
         "django_pbac.loaders.yaml_loader.YAMLPolicyLoader",

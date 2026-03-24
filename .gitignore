@@ -1,0 +1,163 @@
+.gitnexus
+
+# =========================
+# AI / Editor tooling (private configs)
+# =========================
+.claude/
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =========================
+# Virtual environments
+# =========================
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# Django
+# =========================
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Django media/static (optional depending on setup)
+media/
+staticfiles/
+
+# If using collectstatic in CI/CD, ignore this:
+static/
+
+# =========================
+# Migrations (optional)
+# =========================
+# DO NOT ignore in production apps unless it's a library
+# Uncomment only if you're building a reusable package
+# */migrations/*
+# !*/migrations/__init__.py
+
+# =========================
+# Testing / coverage
+# =========================
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# =========================
+# Type checkers
+# =========================
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# =========================
+# Linters / formatters
+# =========================
+.ruff_cache/
+.flake8
+pylint.log
+
+# =========================
+# IDEs / Editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Docker
+# =========================
+*.pid
+*.seed
+*.pid.lock
+docker-compose.override.yml
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# Celery
+# =========================
+celerybeat-schedule
+celerybeat.pid
+
+# =========================
+# Sphinx docs
+# =========================
+docs/_build/
+
+# =========================
+# PyInstaller
+# =========================
+*.manifest
+*.spec
+
+# =========================
+# Jupyter Notebook
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# PyCharm
+# =========================
+*.iml
+
+# =========================
+# Security-sensitive files
+# =========================
+*.pem
+*.key
+*.crt
+secrets.json

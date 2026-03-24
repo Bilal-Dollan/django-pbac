@@ -1,5 +1,11 @@
 # django-pbac
 
+> **⚠️ Work in Progress — Early Development**
+>
+> This project is currently under active development and is **not yet production-ready**.
+> It may contain bugs, incomplete features, breaking API changes, and missing documentation.
+> Use at your own risk. Feedback, bug reports, and contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 [![CI](https://github.com/django-pbac/django-pbac/actions/workflows/ci.yml/badge.svg)](https://github.com/django-pbac/django-pbac/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/django-pbac.svg)](https://pypi.org/project/django-pbac/)
 [![Python](https://img.shields.io/pypi/pyversions/django-pbac.svg)](https://pypi.org/project/django-pbac/)
@@ -7,7 +13,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)]()
 
-Production-grade **Policy-Based Access Control (PBAC)** for Django.
+Policy-Based Access Control (PBAC) for Django.
 
 ---
 
@@ -68,7 +74,7 @@ INSTALLED_APPS = [
 ]
 
 PBAC = {
-    "CONFLICT_RESOLUTION": "deny_override",
+    "CONFLICT_RESOLUTION": "DENY_OVERRIDE",
     "POLICY_LOADERS": [
         "django_pbac.loaders.db.DatabasePolicyLoader",
         "django_pbac.loaders.yaml_loader.YAMLPolicyLoader",
