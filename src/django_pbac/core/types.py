@@ -36,6 +36,29 @@ class ConflictResolution(StrEnum):
     FIRST_APPLICABLE = "FIRST_APPLICABLE"
 
 
+def parse_conflict_resolution(value: str | ConflictResolution) -> ConflictResolution:
+    """
+    Parse conflict resolution from enum, enum-name, or lowercase DB value.
+
+    Accepted inputs:
+    - ``ConflictResolution.DENY_OVERRIDE``
+    - ``"DENY_OVERRIDE"``
+    - ``"deny_override"``
+    """
+    if isinstance(value, ConflictResolution):
+        return value
+
+    normalized = str(value).strip()
+    if not normalized:
+        return ConflictResolution.DENY_OVERRIDE
+
+    # Support DB/admin choices and settings values like "deny_override".
+    if normalized.lower() in {"deny_override", "permit_override", "first_applicable"}:
+        normalized = normalized.upper()
+
+    return ConflictResolution(normalized)
+
+
 class PolicySourceType(StrEnum):
     """Where a policy was loaded from."""
 

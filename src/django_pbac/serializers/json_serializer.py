@@ -9,7 +9,12 @@ from __future__ import annotations
 from typing import Any
 
 from django_pbac.core.models import Condition, Policy, ResourceMatcher, SubjectMatcher
-from django_pbac.core.types import ConflictResolution, Effect, PolicySourceType, SubjectType
+from django_pbac.core.types import (
+    Effect,
+    PolicySourceType,
+    SubjectType,
+    parse_conflict_resolution,
+)
 
 
 class PolicyJSONSerializer:
@@ -73,7 +78,7 @@ class PolicyJSONSerializer:
                 self._deserialize_condition(c) for c in data.get("conditions", [])
             ),
             priority=int(data.get("priority", 0)),
-            conflict_resolution=ConflictResolution(
+            conflict_resolution=parse_conflict_resolution(
                 data.get("conflict_resolution", "DENY_OVERRIDE")
             ),
             is_active=bool(data.get("is_active", True)),

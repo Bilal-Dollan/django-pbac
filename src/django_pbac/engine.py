@@ -28,6 +28,7 @@ from django_pbac.core.models import (
 )
 from django_pbac.core.operators import operator_registry
 from django_pbac.core.types import ConflictResolution, SubjectType
+from django_pbac.core.types import parse_conflict_resolution
 
 logger = logging.getLogger(__name__)
 
@@ -202,7 +203,7 @@ def _build_engine() -> PBACEngine:
     from django_pbac.loaders.composite import CompositePolicyLoader
 
     # Conflict resolution
-    conflict_resolution = ConflictResolution(pbac_settings.CONFLICT_RESOLUTION)
+    conflict_resolution = parse_conflict_resolution(pbac_settings.CONFLICT_RESOLUTION)
 
     # Evaluator
     evaluator = PolicyEvaluator(

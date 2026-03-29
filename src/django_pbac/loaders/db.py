@@ -10,6 +10,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from django_pbac.core.matchers import action_matches
 from django_pbac.core.models import (
     Condition,
     Policy,
@@ -22,6 +23,7 @@ from django_pbac.core.types import (
     Effect,
     PolicySourceType,
     SubjectType,
+    parse_conflict_resolution,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,7 +35,7 @@ class DatabasePolicyLoader:
 
     Query strategy:
     - Filters for active, temporally valid policies.
-    - Filters by resource type using a JSON contains query.
+    - Applies action/resource-type prefiltering in Python for backend portability.
     - Uses select_related + prefetch_related to avoid N+1 queries.
     - Deserializes ORM models to immutable core Policy dataclasses.
     """
@@ -51,11 +53,25 @@ class DatabasePolicyLoader:
         qs = (
             PolicyModel.objects.active()
             .valid_at(now)
-            .for_resource_type(resource_type)
             .prefetch_related("conditions")
             .select_related()
         )
-        return [self._to_policy(m) for m in qs]
+        return [
+            self._to_policy(m)
+            for m in qs
+            if self._model_matches_action(m, action)
+            and self._model_matches_resource_type(m, resource_type)
+        ]
+
+    def _model_matches_action(self, model: object, action: str) -> bool:
+        """Return True when any stored action pattern matches requested action."""
+        action_patterns = getattr(model, "actions", []) or []
+        return any(action_matches(str(pattern), action) for pattern in action_patterns)
+
+    def _model_matches_resource_type(self, model: object, resource_type: str) -> bool:
+        """Return True when policy resource_types contains the requested resource type."""
+        policy_resource_types = getattr(model, "resource_types", []) or []
+        return resource_type in policy_resource_types
 
     def load_all(self) -> list[Policy]:
         """Load all active policies."""
@@ -83,7 +99,7 @@ class DatabasePolicyLoader:
             "description": policy.description,
             "effect": policy.effect.value,
             "priority": policy.priority,
-            "conflict_resolution": policy.conflict_resolution.value,
+            "conflict_resolution": policy.conflict_resolution.value.lower(),
             "is_active": policy.is_active,
             "valid_from": policy.valid_from,
             "valid_until": policy.valid_until,
@@ -185,7 +201,7 @@ class DatabasePolicyLoader:
             resource_matchers=(resource_matcher,),
             conditions=conditions,
             priority=attr("priority"),
-            conflict_resolution=ConflictResolution(attr("conflict_resolution")),
+            conflict_resolution=parse_conflict_resolution(attr("conflict_resolution")),
             is_active=attr("is_active"),
             valid_from=attr("valid_from"),
             valid_until=attr("valid_until"),

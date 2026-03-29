@@ -8,6 +8,7 @@ from django_pbac.core.types import (
     Effect,
     PolicySourceType,
     SubjectType,
+    parse_conflict_resolution,
 )
 
 
@@ -35,6 +36,12 @@ class TestConflictResolution:
 
     def test_roundtrip(self) -> None:
         assert ConflictResolution("DENY_OVERRIDE") is ConflictResolution.DENY_OVERRIDE
+
+    def test_parse_lowercase_db_value(self) -> None:
+        assert parse_conflict_resolution("deny_override") is ConflictResolution.DENY_OVERRIDE
+
+    def test_parse_enum_name_value(self) -> None:
+        assert parse_conflict_resolution("PERMIT_OVERRIDE") is ConflictResolution.PERMIT_OVERRIDE
 
 
 class TestSubjectType:
