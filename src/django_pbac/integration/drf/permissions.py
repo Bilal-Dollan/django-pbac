@@ -54,6 +54,7 @@ class PBACPermission(BasePermission):  # type: ignore[misc]
     Configure on your ViewSet:
         permission_classes = [PBACPermission]
         pbac_resource_type = "document"
+        pbac_action = "documents:list"  # optional explicit action override
         pbac_action_map = {
             "list":    "documents:list",
             "create":  "documents:create",
@@ -105,6 +106,10 @@ class PBACPermission(BasePermission):  # type: ignore[misc]
         return self.has_permission(request, view)
 
     def _get_pbac_action(self, request: Any, view: Any) -> str | None:
+        explicit_action = getattr(view, "pbac_action", None)
+        if explicit_action:
+            return str(explicit_action)
+
         action_map: dict[str, str] = getattr(view, "pbac_action_map", {})
         drf_action: str = getattr(view, "action", "") or ""
 

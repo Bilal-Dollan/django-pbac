@@ -97,6 +97,25 @@ def document_detail(request, pk):
     ...
 ```
 
+```python
+# DRF API views (returns JSON 403 via DRF permission handling)
+from rest_framework.views import APIView
+from django_pbac.integration.drf.permissions import PBACPermission
+
+
+class DocumentListView(APIView):
+    permission_classes = [PBACPermission]
+    pbac_action = "documents:list"
+    pbac_resource_type = "document"
+    serializer_class = DocumentSerializer
+    pagination_class = CustomPagination
+```
+
+> Note:
+> Use `PBACViewMixin` for Django class-based views (`django.views.View`).
+> For DRF `APIView`/`ViewSet`, use `PBACPermission`/`PBACObjectPermission` so denied
+> requests are formatted by DRF (JSON) instead of Django's HTML 403 page.
+
 ## Documentation
 
 Documentation is a work in progress. See [docs/index.md](docs/index.md) for the current overview,
@@ -114,6 +133,88 @@ Request → ContextInjectors → PolicyLoader → PolicyEvaluator → PolicyDeci
 
 The evaluation engine (`core/`) is pure Python with zero Django dependencies,
 making it independently testable and potentially reusable outside Django.
+
+## Production Setup
+
+### 1. Use the production settings helper
+
+```python
+# settings.py
+from django_pbac.conf import get_production_pbac_settings
+
+PBAC = get_production_pbac_settings()
+PBAC["YAML_POLICY_DIRS"] = [BASE_DIR / "policies"]   # optional
+```
+
+Key differences from dev defaults:
+- `ENABLE_EVALUATION_TRACE: False` — skips per-request trace allocation (lower overhead)
+- `AUDIT_PERMIT_DECISIONS: False` — only DENY decisions are written to the audit table
+- `DatabaseAuditLogger` — writes audit records to DB instead of stdout
+
+### 2. Configure logging to silence 403 traceback noise
+
+By default Django logs every `PermissionDenied` (403) as a `WARNING` with a full
+traceback. In production this is expected and noisy — a deny is not a server error.
+
+Use the bundled `RECOMMENDED_LOGGING` config, or merge it manually:
+
+```python
+# settings.py
+from django_pbac.conf import RECOMMENDED_LOGGING
+
+LOGGING = RECOMMENDED_LOGGING
+```
+
+Or manually in your existing `LOGGING` dict:
+
+```python
+LOGGING["loggers"]["django.request"] = {
+    "handlers": ["console"],
+    "level": "ERROR",      # only 5xx prints a traceback; 403 is silent
+    "propagate": False,
+}
+LOGGING["loggers"]["django_pbac"] = {
+    "handlers": ["console"],
+    "level": "WARNING",    # still surface loader/audit errors
+    "propagate": False,
+}
+```
+
+### 3. Apply migrations before first deploy
+
+```bash
+python manage.py migrate django_pbac
+python manage.py migrate
+```
+
+If you already have stale PBAC migration state (e.g. tables are missing):
+
+```bash
+python manage.py migrate django_pbac zero --fake
+python manage.py migrate django_pbac
+```
+
+### 4. Cache
+
+Policy evaluation hits the loader on every request by default until the cache warms up.
+For high-traffic deployments, point `CACHE_ALIAS` at a Redis/Memcached Django cache:
+
+```python
+CACHES = {
+    "pbac": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+    }
+}
+
+PBAC["CACHE_ALIAS"] = "pbac"
+PBAC["CACHE_TTL"] = 120   # seconds; lower = fresher policies
+```
+
+### 5. Admin access to policies
+
+Policies ship with a full Django admin interface. Restrict admin access by role
+in your project's `INSTALLED_APPS` + standard Django staff/superuser controls.
 
 ## Security
 

@@ -19,6 +19,11 @@ class PBACViewMixin:
     """
     Mixin for class-based views that enforces a PBAC policy.
 
+    This mixin is intended for Django CBVs (e.g. ``django.views.View``).
+    For DRF ``APIView`` and ``ViewSet``, use
+    ``django_pbac.integration.drf.permissions.PBACPermission`` instead so
+    denied requests are rendered as DRF JSON responses.
+
     Set class attributes:
         pbac_action (str):        Required. Action to check, e.g. "documents:read".
         pbac_resource_type (str): Required. Resource type, e.g. "document".

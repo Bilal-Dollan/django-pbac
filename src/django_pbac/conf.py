@@ -85,3 +85,76 @@ def _reload_pbac_settings(*, setting: str, **kwargs: Any) -> None:
 
 
 setting_changed.connect(_reload_pbac_settings)
+
+
+def get_production_pbac_settings() -> dict[str, Any]:
+    """
+    Return a production-ready PBAC settings dict.
+
+    Merge this into your project's ``PBAC`` setting::
+
+        from django_pbac.conf import get_production_pbac_settings
+        PBAC = get_production_pbac_settings()
+        PBAC["YAML_POLICY_DIRS"] = [BASE_DIR / "policies"]
+
+    Key differences from development defaults:
+    - Evaluation trace disabled (lower overhead per request).
+    - Only deny decisions are audited by default (reduce write load).
+    - DB audit logger used instead of structured log.
+    """
+    return {
+        "CONFLICT_RESOLUTION": "deny_override",
+        "POLICY_LOADERS": [
+            "django_pbac.loaders.db.DatabasePolicyLoader",
+        ],
+        "YAML_POLICY_DIRS": [],
+        "CACHE_BACKEND": "django_pbac.cache.django_cache.DjangoCacheBackend",
+        "CACHE_ALIAS": "default",
+        "CACHE_TTL": 300,
+        "AUDIT_LOGGERS": [
+            "django_pbac.audit.db.DatabaseAuditLogger",
+        ],
+        "CONTEXT_INJECTORS": [
+            "django_pbac.injectors.user.UserAttributeInjector",
+            "django_pbac.injectors.request_meta.RequestMetadataInjector",
+        ],
+        # Disable per-request evaluation trace in production (saves memory/CPU).
+        "ENABLE_EVALUATION_TRACE": False,
+        "AUDIT_ALL_DECISIONS": False,
+        "AUDIT_PERMIT_DECISIONS": False,
+        "REQUEST_ID_HEADER": "X-Request-ID",
+    }
+
+
+RECOMMENDED_LOGGING: dict[str, Any] = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name} - {message}",
+            "style": "{",
+        },
+    },
+    "loggers": {
+        # Silence Django's default PermissionDenied (403) traceback noise.
+        # 403s are expected access-control results, not server errors.
+        # Only 5xx errors (ERROR level) will print a traceback.
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        # Surface PBAC warnings (e.g. missing table, loader errors).
+        "django_pbac": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}
