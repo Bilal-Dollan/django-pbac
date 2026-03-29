@@ -118,7 +118,7 @@ class DatabasePolicyLoader:
         # Sync conditions
         obj.conditions.all().delete()
         for cond in policy.conditions:
-            ConditionModel.objects.create(  # type: ignore[attr-defined]
+            ConditionModel.objects.create(
                 policy=obj,
                 operator=cond.operator,
                 attribute=cond.attribute,

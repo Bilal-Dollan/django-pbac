@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Root-level Django admin module so PBAC models are auto-discovered in admin.
+- Cache invalidation signals for policy and condition changes.
+- Production-oriented PBAC settings helper and recommended logging config.
+- VS Code `validate` task for running Ruff, mypy, and pytest locally.
+
+### Changed
+- DRF `PBACPermission` now supports a direct `pbac_action` attribute on API views.
+- DRF usage examples now recommend permission classes for JSON 403 responses instead of `PBACViewMixin` on `APIView`.
+- Packaging cleanup: generated `egg-info` metadata is no longer tracked in git.
+
+### Fixed
+- Database policy loading now avoids backend-specific JSON `contains` lookups during request evaluation.
+- Conflict resolution values now parse correctly from lowercase database/admin values like `deny_override`.
+- Database audit logging now degrades safely when PBAC audit tables are not migrated yet.
+- Django admin registrations now load reliably across supported Django versions.
+- PBAC cache is invalidated when policies are changed in the admin.
+- Removed stale mypy `type: ignore` comments flagged as unused.
+
 ## [0.1.0] - 2026-03-19
 
 ### Added
