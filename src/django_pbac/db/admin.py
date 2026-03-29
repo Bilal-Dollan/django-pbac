@@ -8,9 +8,12 @@ Provides rich admin interfaces for:
 """
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from django.contrib import admin
+
+if TYPE_CHECKING:
+    from django.db.models import Model
 from django.http import HttpRequest
 from django.utils.html import format_html
 
@@ -20,7 +23,7 @@ from django_pbac.db.models import AuditLogModel, ConditionModel, PolicyModel, Po
 # Inline: Conditions
 # ---------------------------------------------------------------------------
 
-class ConditionInline(admin.TabularInline[ConditionModel, PolicyModel]):
+class ConditionInline(admin.TabularInline):  # type: ignore[type-arg]
     model = ConditionModel
     extra = 1
     fields = ("attribute", "operator", "value", "negate")
@@ -31,7 +34,7 @@ class ConditionInline(admin.TabularInline[ConditionModel, PolicyModel]):
 # ---------------------------------------------------------------------------
 
 @admin.register(PolicyModel)
-class PolicyAdmin(admin.ModelAdmin[PolicyModel]):
+class PolicyAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     list_display = (
         "name",
         "effect_badge",
@@ -103,7 +106,7 @@ class PolicyAdmin(admin.ModelAdmin[PolicyModel]):
 # ---------------------------------------------------------------------------
 
 @admin.register(AuditLogModel)
-class AuditLogAdmin(admin.ModelAdmin[AuditLogModel]):
+class AuditLogAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     list_display = (
         "timestamp",
         "effect_badge",
@@ -142,7 +145,7 @@ class AuditLogAdmin(admin.ModelAdmin[AuditLogModel]):
 # ---------------------------------------------------------------------------
 
 @admin.register(PolicyVersionModel)
-class PolicyVersionAdmin(admin.ModelAdmin[PolicyVersionModel]):
+class PolicyVersionAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     list_display = ("policy_id", "version", "created_by", "created_at", "change_reason")
     list_filter = ("created_by",)
     search_fields = ("policy_id", "created_by", "change_reason")

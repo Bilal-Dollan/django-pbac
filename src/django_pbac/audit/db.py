@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import logging
 
+from django.db.utils import OperationalError, ProgrammingError
+
 from django_pbac.core.models import PolicyDecision
 
 logger = logging.getLogger(__name__)
@@ -19,7 +21,13 @@ class DatabaseAuditLogger:
     on ``PBAC["AUDIT_PERMIT_DECISIONS"]``.
     """
 
+    def __init__(self) -> None:
+        self._db_logging_disabled = False
+
     def log(self, decision: PolicyDecision) -> None:
+        if self._db_logging_disabled:
+            return
+
         try:
             from django_pbac.conf import pbac_settings
             from django_pbac.core.types import Effect
@@ -49,5 +57,29 @@ class DatabaseAuditLogger:
                 denied_by=decision.denied_by or "",
                 permitted_by=decision.permitted_by or "",
             )
+        except (OperationalError, ProgrammingError) as exc:
+            if self._is_missing_table_error(exc):
+                self._db_logging_disabled = True
+                logger.warning(
+                    "DatabaseAuditLogger disabled: audit table is missing. "
+                    "Run django-pbac migrations to enable DB audit logs. Original error: %s",
+                    exc,
+                )
+                return
+            logger.error("DatabaseAuditLogger failed: %s", exc)
         except Exception as exc:
             logger.error("DatabaseAuditLogger failed: %s", exc)
+
+    @staticmethod
+    def _is_missing_table_error(exc: Exception) -> bool:
+        """Return True when exception indicates an undefined/missing table."""
+        message = str(exc).lower()
+        return any(
+            token in message
+            for token in (
+                "no such table",
+                "relation",
+                "does not exist",
+                "undefined table",
+            )
+        )

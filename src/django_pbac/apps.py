@@ -15,6 +15,7 @@ class DjangoPbacConfig(AppConfig):
         """Perform initialization when Django starts."""
         # Import to ensure signal handlers and registry entries are loaded.
         from django_pbac import conf  # noqa: F401
+        from django_pbac.db import signals  # noqa: F401
         from django_pbac.engine import pbac_engine  # noqa: F401
 
         # Trigger registration of any code-defined policies via autodiscovery.

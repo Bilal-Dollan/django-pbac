@@ -5,8 +5,10 @@ import logging
 from unittest.mock import MagicMock
 
 import pytest
+from django.db.utils import OperationalError
 
 from django_pbac.audit.composite import CompositeAuditLogger
+from django_pbac.audit.db import DatabaseAuditLogger
 from django_pbac.audit.structured_log import StructuredLogAuditLogger
 from django_pbac.core.models import (
     Context,
@@ -95,3 +97,42 @@ class TestCompositeAuditLogger:
     def test_empty_composite(self, permit_decision) -> None:
         composite = CompositeAuditLogger(loggers=[])
         composite.log(permit_decision)  # Should not raise
+
+
+class TestDatabaseAuditLogger:
+    def test_disables_itself_when_audit_table_is_missing(
+        self,
+        deny_decision,
+        monkeypatch,
+        caplog,
+    ) -> None:
+        import django_pbac.db.models as db_models
+
+        create_mock = MagicMock(
+            side_effect=OperationalError("no such table: django_pbac_auditlogmodel")
+        )
+        monkeypatch.setattr(db_models.AuditLogModel.objects, "create", create_mock)
+
+        logger = DatabaseAuditLogger()
+        with caplog.at_level(logging.WARNING, logger="django_pbac.audit.db"):
+            logger.log(deny_decision)
+            logger.log(deny_decision)
+
+        assert create_mock.call_count == 1
+        assert any("disabled" in record.message.lower() for record in caplog.records)
+
+    def test_non_table_db_error_does_not_disable_logger(
+        self,
+        deny_decision,
+        monkeypatch,
+    ) -> None:
+        import django_pbac.db.models as db_models
+
+        create_mock = MagicMock(side_effect=OperationalError("database is locked"))
+        monkeypatch.setattr(db_models.AuditLogModel.objects, "create", create_mock)
+
+        logger = DatabaseAuditLogger()
+        logger.log(deny_decision)
+        logger.log(deny_decision)
+
+        assert create_mock.call_count == 2
