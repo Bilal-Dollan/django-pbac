@@ -27,8 +27,7 @@ from django_pbac.core.models import (
     Subject,
 )
 from django_pbac.core.operators import operator_registry
-from django_pbac.core.types import ConflictResolution, SubjectType
-from django_pbac.core.types import parse_conflict_resolution
+from django_pbac.core.types import SubjectType, parse_conflict_resolution
 
 logger = logging.getLogger(__name__)
 

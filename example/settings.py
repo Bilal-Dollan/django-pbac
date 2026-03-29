@@ -5,7 +5,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "example-demo-secret-key-change-in-production"
+SECRET_KEY = "example-demo-secret-key-change-in-production" # noqa: S105
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 

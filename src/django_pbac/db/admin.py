@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, ClassVar
 from django.contrib import admin
 
 if TYPE_CHECKING:
-    from django.db.models import Model
+    pass
 from django.http import HttpRequest
 from django.utils.html import format_html
 

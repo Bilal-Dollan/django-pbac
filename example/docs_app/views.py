@@ -7,7 +7,7 @@ from django.views import View
 
 from django_pbac.core.models import Resource
 from django_pbac.integration.decorators import require_policy
-from django_pbac.integration.mixins import PBACQuerySetMixin, PBACViewMixin
+from django_pbac.integration.mixins import PBACViewMixin
 
 from .models import Document
 

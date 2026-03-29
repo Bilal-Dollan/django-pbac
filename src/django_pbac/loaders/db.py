@@ -19,7 +19,6 @@ from django_pbac.core.models import (
     SubjectMatcher,
 )
 from django_pbac.core.types import (
-    ConflictResolution,
     Effect,
     PolicySourceType,
     SubjectType,

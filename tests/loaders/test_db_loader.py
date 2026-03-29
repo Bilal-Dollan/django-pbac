@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Sequence
+from collections.abc import Sequence
 
 from django_pbac.core.types import ConflictResolution
 from django_pbac.core.models import Subject
